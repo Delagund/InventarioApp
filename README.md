@@ -17,6 +17,7 @@ Arquitectura: Clean Architecture + MVVM
 1. Modelo Entidad-Relación (Base de Datos)
 Este diagrama muestra cómo gestionamos la relación muchos-a-muchos entre productos y categorías para lograr la separación lógica.
 
+```mermaid
 erDiagram
     PRODUCT ||--o{ PRODUCT_CATEGORY : "asignado a"
     CATEGORY ||--o{ PRODUCT_CATEGORY : "contiene"
@@ -43,9 +44,11 @@ erDiagram
         int category_id FK
     }
 
+```
 2. Casos de Uso (Alcance MVP)
 El MVP se centra en el ciclo de vida del producto y su organización básica en un periodo de 2 a 4 semanas.
 
+```mermaid
 flowchart LR
     User((Usuario))
     
@@ -74,10 +77,12 @@ flowchart LR
     User --> UC6
     User --> UC7
     User --> UC8
+```
 
 3. Diagrama de Clases (Clean Architecture)
 Implementación del Patrón Repositorio para desacoplar la lógica de negocio de la implementación física de la base de datos.
 
+```mermaid
 classDiagram
     class Product {
         +UUID id
@@ -115,6 +120,7 @@ classDiagram
     InventoryInteractor --> ProductRepository : "Usa"
     InventoryViewModel --> InventoryInteractor : "Invoca"
     InventoryInteractor --> Product : "Manipula"
+```
 
 📂 Estructura del Proyecto
 /Domain: Entidades puras y protocolos de repositorio.

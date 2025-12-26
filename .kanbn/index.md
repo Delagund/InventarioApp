@@ -9,13 +9,17 @@ completedColumns:
 
 ## Backlog
 
+- [presentation-configurar-inyección-de-dependencias](tasks/presentation-configurar-inyección-de-dependencias.md)
+- [presentation-setup-de-ventana-mac-os](tasks/presentation-setup-de-ventana-mac-os.md)
 - [testing-test-de-persistencia](tasks/testing-test-de-persistencia.md)
 
 ## Todo
 
-- [conexión-de-datos-con-ui-view-model](tasks/conexión-de-datos-con-ui-view-model.md)
+- [presentation-implementar-product-view-model](tasks/presentation-implementar-product-view-model.md)
 
 ## In Progress
+
+- [conexión-de-datos-con-ui-view-model](tasks/conexión-de-datos-con-ui-view-model.md)
 
 ## Done
 

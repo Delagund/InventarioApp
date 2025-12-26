@@ -1,6 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+// Imports de arquitectura
+import 'infrastructure/repositories/sqlite_product_repository.dart';
+import 'presentation/viewmodels/product_viewmodel.dart';
+import 'presentation/screens/test_persistence_screen.dart';
 
 
 void main() {
@@ -19,15 +25,21 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Inventory Master',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.blue,
-      ),
-      home: const Scaffold(
-        body: Center(child: Text('Listo para construir tu inventario 🚀')),
+    return MultiProvider(
+      providers: [
+        // Inyectamos el Repositorio
+        Provider(create: (_) => SQLiteProductRepository()),
+        // Inyectamos el ViewModel usando el Repositorio anterior
+        ChangeNotifierProvider(
+          create: (context) => ProductViewModel(
+            repository: context.read<SQLiteProductRepository>(),
+          ),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Inventory Master',
+        theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
+        home: const TestPersistenceScreen(), // Pantalla de prueba
       ),
     );
   }

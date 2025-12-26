@@ -23,11 +23,11 @@ Una solución profesional de gestión de inventarios construida bajo los princip
 A diferencia de los inventarios tradicionales, esta aplicación permite una separación lógica total mediante una base de datos única, permitiendo asignar productos a múltiples "Espacios" (Hogar, Oficina, Jardín) sin duplicar datos.
 
 🛠 Tech Stack
-Lenguaje: Swift 6.0 (macOS SDK)
+Lenguaje: Dart + Flutter 
 
-Interfaz: SwiftUI
+Interfaz: 
 
-Persistencia: SQLite (vía Repository Pattern)
+Persistencia: Se utiliza estrictamente sqflite_common_ffi para garantizar compatibilidad con macOS Desktop y evitar el error de MissingPlugin.
 
 Arquitectura: Clean Architecture + MVVM
 

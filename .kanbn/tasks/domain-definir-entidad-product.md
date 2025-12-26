@@ -1,10 +1,11 @@
 ---
 created: 2025-12-23T04:41:00.094Z
-updated: 2025-12-23T04:49:47.164Z
+updated: 2025-12-25T20:32:37.532Z
 assigned: me
 progress: 0
 tags: []
 started: 2025-12-23T00:00:00.000Z
+completed: 2025-12-25T20:32:37.532Z
 ---
 
 # [Domain] Definir Entidad Product

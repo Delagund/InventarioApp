@@ -1,0 +1,37 @@
+import '../models/product.dart';
+import '../models/category.dart';
+
+/// Definimos la interfaz como una clase abstracta.
+
+abstract class IProductRepository {
+  
+  // Obtener todos los productos
+  Future<List<Product>> getAllProducts();
+
+  // Obtener un producto por su ID interno de SQLite
+  Future<Product?> getProductById(int id);
+
+  // Buscar un producto por su código SKU (requerimiento principal)
+  Future<Product?> getProductBySku(String sku);
+
+  // Guardar un nuevo producto o actualizar uno existente
+  Future<void> saveProduct(Product product);
+
+  // Eliminar un producto
+  Future<void> deleteProduct(int id);
+
+  // Buscar productos que coincidan con un término (nombre o SKU)
+  Future<List<Product>> searchProducts(String query);
+
+  // Obtener todas las categorías disponibles (para el Sidebar)
+  Future<List<Category>> getAllCategories();
+
+  // Crear una nueva categoría
+  Future<void> saveCategory(Category category);
+
+  // Vincular un producto con una categoría (en la tabla pivot)
+  Future<void> addCategoryToProduct(int productId, int categoryId);
+
+  // Desvincular un producto de una categoría
+  Future<void> removeCategoryFromProduct(int productId, int categoryId);
+}

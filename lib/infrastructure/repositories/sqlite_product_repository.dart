@@ -25,6 +25,21 @@ class SQLiteProductRepository implements IProductRepository {
   }
 
   @override
+  Future<List<Product>> getProductsByCategory(int categoryId) async {
+    final db = await _dbHelper.database;
+    
+    // Hacemos JOIN con la tabla intermedia 'product_categories'
+    final List<Map<String, dynamic>> results = await db.rawQuery('''
+      SELECT p.*
+      FROM products p
+      INNER JOIN product_categories pc ON p.id = pc.product_id
+      WHERE pc.category_id = ?
+    ''', [categoryId]);
+
+    return results.map((map) => Product.fromMap(map)).toList();
+  }
+
+  @override
   Future<void> saveProduct(Product product) async {
     final db = await _dbHelper.database;
 

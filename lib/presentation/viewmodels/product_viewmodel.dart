@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/product.dart';
+import '../../domain/models/category.dart';
 import '../../domain/repositories/i_product_repository.dart';
 
 class ProductViewModel extends ChangeNotifier {
@@ -15,12 +16,18 @@ class ProductViewModel extends ChangeNotifier {
   ProductViewModel({required this.repository});
 
   // Cargar inicial de productos de la DB
-  Future<void> loadProducts() async {
+  Future<void> loadProducts({Category? category}) async {
     _isLoading = true;
     notifyListeners(); // Avisa a la UI que muestre un círculo de carga
 
     try {
-    _products = await repository.getAllProducts();
+      if (category == null) {
+        // Cargar todo si no hay categoría seleccionada
+        _products = await repository.getAllProducts();
+      } else {
+        // Cargar filtrado
+        _products = await repository.getProductsByCategory(category.id!);
+      }
     } catch (e) {
       debugPrint("Error al cargar productos: $e");
     } finally {

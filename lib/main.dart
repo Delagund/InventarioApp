@@ -5,8 +5,10 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 // Imports de arquitectura
 import 'infrastructure/repositories/sqlite_product_repository.dart';
+import 'infrastructure/repositories/sqlite_category_repository.dart';
 import 'presentation/viewmodels/product_viewmodel.dart';
-import 'presentation/screens/test_persistence_screen.dart';
+import 'presentation/viewmodels/category_viewmodel.dart';
+import 'presentation/screens/main_layout.dart';
 
 
 void main() {
@@ -29,17 +31,27 @@ class MyApp extends StatelessWidget {
       providers: [
         // Inyectamos el Repositorio
         Provider(create: (_) => SQLiteProductRepository()),
+        Provider(create: (_) => SQLiteCategoryRepository()),
         // Inyectamos el ViewModel usando el Repositorio anterior
         ChangeNotifierProvider(
           create: (context) => ProductViewModel(
             repository: context.read<SQLiteProductRepository>(),
           ),
         ),
+        ChangeNotifierProvider(
+          create: (context) => CategoryViewModel(
+            repository: context.read<SQLiteCategoryRepository>(),
+          ),
+        ),
       ],
       child: MaterialApp(
         title: 'Inventory Master',
-        theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-        home: const TestPersistenceScreen(), // Pantalla de prueba
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true, 
+          colorSchemeSeed: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,),
+        home: const MainLayout(), // Pantalla de prueba
       ),
     );
   }

@@ -2,15 +2,18 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../domain/models/category.dart';
 import '../models/category_model.dart';
 import '../database/database_helper.dart';
+import '../../domain/repositories/i_category_repository.dart';
+
 
 /// Implementación del repositorio de categorías utilizando SQLite.
 /// Sigue los principios de Clean Architecture al manejar la lógica de persistencia
 /// y el mapeo de datos específicos de la infraestructura.
-class SQLiteCategoryRepository {
+class SQLiteCategoryRepository implements CategoryRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   /// Obtiene todas las categorías con un conteo dinámico de productos asociados.
   /// Utiliza un LEFT JOIN con la tabla pivot para garantizar eficiencia y veracidad.
+  @override
   Future<List<Category>> getAllCategories() async {
     final db = await _dbHelper.database;
 
@@ -31,7 +34,8 @@ class SQLiteCategoryRepository {
   }
 
   /// Crea una nueva categoría en la base de datos.
-  Future<void> saveCategory(Category category) async {
+  @override
+  Future<void> createCategory(Category category) async {
     final db = await _dbHelper.database;
     
     // Creamos un CategoryModel a partir de la Category (entidad)
@@ -50,6 +54,7 @@ class SQLiteCategoryRepository {
 
   /// Elimina una categoría por su ID.
   /// Gracias a ON DELETE CASCADE en la tabla pivot, se desvinculan los productos automáticamente.
+  @override
   Future<void> deleteCategory(int id) async {
     final db = await _dbHelper.database;
     await db.delete(

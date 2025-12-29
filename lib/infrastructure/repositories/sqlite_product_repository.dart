@@ -1,14 +1,13 @@
 import '../../domain/models/product.dart';
 import '../../domain/models/category.dart';
 import '../../domain/repositories/i_product_repository.dart';
+import '../../infrastructure/models/category_model.dart';
 import '../database/database_helper.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class SQLiteProductRepository implements IProductRepository {
   // Obtenemos la instancia del DatabaseHelper que creamos antes
   final DatabaseHelper _dbHelper = DatabaseHelper();
-
-  // --- Métodos para Producto ---
 
   @override
   Future<List<Product>> getAllProducts() async {
@@ -102,22 +101,6 @@ class SQLiteProductRepository implements IProductRepository {
     });
   }
 
-  // --- Métodos para Categorias ---
-
-  @override
-  Future<List<Category>> getAllCategories() async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query('categories');
-    return maps.map((map) => Category.fromMap(map)).toList();
-  }
-
-  @override
-  Future<void> saveCategory(Category category) async {
-    final db = await _dbHelper.database;
-    await db.insert('categories', category.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
-  }
-
   // --- Métodos para la tabla pivot Producto-Categoría ---
   
   @override
@@ -149,6 +132,6 @@ class SQLiteProductRepository implements IProductRepository {
       WHERE pc.product_id = ?
     ''', [productId]);
 
-    return result.map((map) => Category.fromMap(map)).toList();
+    return result.map((map) => CategoryModel.fromMap(map)).toList();
   }
 }

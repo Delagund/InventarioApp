@@ -1,5 +1,4 @@
 import '../models/product.dart';
-import '../models/category.dart';
 
 /// Definimos la interfaz como una clase abstracta.
 
@@ -22,12 +21,6 @@ abstract class IProductRepository {
 
   // Buscar productos que coincidan con un término (nombre o SKU)
   Future<List<Product>> searchProducts(String query);
-
-  // Obtener todas las categorías disponibles (para el Sidebar)
-  Future<List<Category>> getAllCategories();
-
-  // Crear una nueva categoría
-  Future<void> saveCategory(Category category);
 
   // Vincular un producto con una categoría (en la tabla pivot)
   Future<void> addCategoryToProduct(int productId, int categoryId);

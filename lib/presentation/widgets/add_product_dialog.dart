@@ -124,7 +124,16 @@ class _AddProductDialogState extends State<AddProductDialog> {
                   child: _imagePath != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.file(File(_imagePath!), fit: BoxFit.cover),
+                          child: Image.file(
+                            File(_imagePath!),
+                            fit: BoxFit.cover,
+                            // Esto muestra un icono si no se puede leer la imagen (por permisos o ruta inválida)
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Icon(Icons.broken_image, color: Colors.red),
+                              );
+                            },
+                          ),
                         )
                       : const Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
                 ),

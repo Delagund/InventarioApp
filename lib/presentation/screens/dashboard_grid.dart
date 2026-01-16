@@ -13,6 +13,71 @@ class DashboardGrid extends StatefulWidget {
 }
 
 class _DashboardGridState extends State<DashboardGrid> {
+  // Estado para el modo de selección
+  bool _isSelectionMode = false;
+  final Set<int> _selectedProductIds = {};
+
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = !_isSelectionMode;
+      _selectedProductIds.clear();
+    });
+  }
+
+  void _toggleProductSelection(int productId) {
+    setState(() {
+      if (_selectedProductIds.contains(productId)) {
+        _selectedProductIds.remove(productId);
+      } else {
+        _selectedProductIds.add(productId);
+      }
+    });
+  }
+
+  Future<void> _deleteSelectedProducts() async {
+    if (_selectedProductIds.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar productos'),
+        content: Text('¿Estás seguro de que deseas eliminar ${_selectedProductIds.length} productos? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final productVM = context.read<ProductViewModel>();
+      // Copiamos la lista para iterar
+      final idsToDelete = List<int>.from(_selectedProductIds);
+      
+      for (final id in idsToDelete) {
+        await productVM.deleteProduct(id);
+      }
+      
+      _toggleSelectionMode();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${idsToDelete.length} productos eliminados')),
+        );
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -58,26 +123,67 @@ class _DashboardGridState extends State<DashboardGrid> {
             color: theme.colorScheme.surface,
           ),
           child: Row(
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.headlineSmall,
-              ),
-              const Spacer(),
-              // Aquí irán filtros de ordenamiento en el futuro
-              IconButton(onPressed: () {},
-              icon: const Icon(Icons.sort)),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: () { showDialog(
-                  context: context,
-                  builder: (context) => const AddProductDialog(),
-                  );
-                },
-                icon: const Icon(Icons.add),
-                label: const Text("Nuevo Producto"),
-              )
-            ],
+            children: _isSelectionMode 
+              ? [
+                  IconButton(
+                    onPressed: _toggleSelectionMode, 
+                    icon: const Icon(Icons.close),
+                    tooltip: "Cancelar selección",
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "${_selectedProductIds.length} seleccionados",
+                      style: theme.textTheme.titleMedium,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: theme.colorScheme.error,
+                      foregroundColor: theme.colorScheme.onError,
+                    ),
+                    onPressed: _selectedProductIds.isEmpty ? null : _deleteSelectedProducts,
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text("Eliminar"),
+                  ),
+                ]
+              : [
+                  // Usamos Expanded para que el texto ocupe el espacio disponible y empuje los botones
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.headlineSmall,
+                      overflow: TextOverflow.ellipsis, // Corta con "..." si es muy largo
+                      maxLines: 1,
+                    ),
+                  ),
+                  // Botón para activar modo selección
+                  IconButton(
+                    onPressed: _toggleSelectionMode,
+                    icon: const Icon(Icons.checklist),
+                    tooltip: "Seleccionar productos",
+                  ),
+                  const SizedBox(width: 8),
+                  // Aquí irán filtros de ordenamiento en el futuro
+                  IconButton(onPressed: () {},
+                  icon: const Icon(Icons.sort)),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: FilledButton.icon(
+                      onPressed: () { showDialog(
+                        context: context,
+                        builder: (context) => const AddProductDialog(),
+                        );
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text(
+                        "Nuevo Producto", 
+                        overflow: TextOverflow.ellipsis
+                      ),
+                    ),
+                  )
+                ],
           ),
         ),
 
@@ -110,11 +216,44 @@ class _DashboardGridState extends State<DashboardGrid> {
                       itemCount: productVM.products.length,
                       itemBuilder: (context, index) {
                         final product = productVM.products[index];
-                        return ProductCard(
-                          product: product,
-                          onTap: () {
-                            // TODO: Seleccionar producto para el Inspector
-                          },
+                        final isSelected = _selectedProductIds.contains(product.id);
+                        
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ProductCard(
+                              product: product,
+                              onTap: _isSelectionMode 
+                                  ? () => _toggleProductSelection(product.id!)
+                                  : () {
+                                      // TODO: Seleccionar producto para el Inspector
+                                    },
+                            ),
+                            if (_isSelectionMode) ...[
+                              IgnorePointer(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  decoration: BoxDecoration(
+                                    color: isSelected 
+                                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: isSelected 
+                                        ? Border.all(color: theme.colorScheme.primary, width: 3)
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: Checkbox(
+                                  value: isSelected,
+                                  onChanged: (v) => _toggleProductSelection(product.id!),
+                                ),
+                              ),
+                            ]
+                          ],
                         );
                       },
                     ),

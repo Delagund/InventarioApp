@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/sidebar.dart';
+import 'dashboard_grid.dart';
 
 class MainLayout extends StatelessWidget {
   const MainLayout({super.key});
@@ -23,22 +24,7 @@ class MainLayout extends StatelessWidget {
           Expanded(
             child: Container(
               color: theme.colorScheme.surface,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.grid_view, size: 48, color: theme.colorScheme.outline),
-                    const SizedBox(height: 16),
-                    Text(
-                      "Dashboard Grid",
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: theme.colorScheme.outline,
-                      ),
-                    ),
-                    const Text("Aquí se mostrarán los productos filtrados"),
-                  ],
-                ),
-              ),
+              child: const DashboardGrid(),
             ),
           ),
 

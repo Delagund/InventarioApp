@@ -12,6 +12,9 @@ abstract class IProductRepository {
 
   // Buscar un producto por su código SKU (requerimiento principal)
   Future<Product?> getProductBySku(String sku);
+  
+  // Obtener productos por categoría
+  Future<List<Product>> getProductsByCategory(int categoryId);
 
   // Guardar un nuevo producto o actualizar uno existente
   Future<void> saveProduct(Product product);

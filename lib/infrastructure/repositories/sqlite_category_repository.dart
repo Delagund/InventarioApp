@@ -1,8 +1,8 @@
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../domain/models/category.dart';
 import '../models/category_model.dart';
 import '../database/database_helper.dart';
 import '../../domain/repositories/i_category_repository.dart';
+import 'package:sqflite/sqflite.dart';
 
 
 /// Implementación del repositorio de categorías utilizando SQLite.

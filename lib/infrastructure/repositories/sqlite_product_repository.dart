@@ -3,7 +3,7 @@ import '../../domain/models/category.dart';
 import '../../domain/repositories/i_product_repository.dart';
 import '../../infrastructure/models/category_model.dart';
 import '../database/database_helper.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite/sqflite.dart';
 
 class SQLiteProductRepository implements IProductRepository {
   // Obtenemos la instancia del DatabaseHelper que creamos antes

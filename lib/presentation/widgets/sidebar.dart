@@ -163,7 +163,7 @@ class _SidebarItem extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: isSelected 
-                      ? theme.colorScheme.primary.withOpacity(0.2) 
+                      ? theme.colorScheme.primary.withValues(alpha: 0.2)
                       : theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),

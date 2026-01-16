@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 // ViewModels and Entities
 import '../../domain/models/category.dart';
@@ -37,9 +39,9 @@ class _AddProductDialogState extends State<AddProductDialog> {
     super.dispose();
   }
 
-  // Lógica para seleccionar imagen en macOS
+  // Lógica para seleccionar imagen en macOS y guardarla en la carpeta de la App
   Future<void> _pickImage() async {
-    const XTypeGroup typeGroup = XTypeGroup(
+    final XTypeGroup typeGroup = XTypeGroup(
       label: 'images',
       extensions: <String>['jpg', 'png', 'jpeg'],
       uniformTypeIdentifiers: <String>['public.jpg', 'public.png', 'public.jpeg'],
@@ -52,9 +54,37 @@ class _AddProductDialogState extends State<AddProductDialog> {
     if (file == null) {
       return;
     } else {
-      setState(() {
-        _imagePath = file.path;
-      });
+      try {
+        // Copiamos la imagen a la carpeta de la aplicación para tener control sobre ella
+        final appDir = await getApplicationDocumentsDirectory();
+        // Definimos nuestra carpeta específica "product_images"
+        final String folderPath = path.join(appDir.path, 'product_images');
+        // Creamos la carpeta si no existe (esto asegura que siempre haya destino)
+        final Directory folderDir = Directory(folderPath);
+        if (!await folderDir.exists()) {
+          await folderDir.create(recursive: true);
+        }
+        // Obtenemos el nombre original del archivo (ej: "foto.jpg")
+        final String fileName = path.basename(file.path);
+        // Agregamos un timestamp para evitar que dos fotos con el mismo nombre se reemplacen
+        final String uniqueName = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
+        // Definimos la ruta completa donde se guardará la imagen
+        final String savedImagePath = path.join(folderPath, uniqueName);
+        
+        await file.saveTo(savedImagePath);
+
+        if (!mounted) return; // Evita errores si el diálogo se cerró
+        setState(() {
+          _imagePath = savedImagePath;
+        });
+      } catch (e) {
+        debugPrint('Error al guardar la imagen: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se pudo guardar la imagen seleccionada')),
+          );
+        }
+      }
     }
   }
 

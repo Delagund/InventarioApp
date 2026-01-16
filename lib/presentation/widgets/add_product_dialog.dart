@@ -42,11 +42,16 @@ class _AddProductDialogState extends State<AddProductDialog> {
     const XTypeGroup typeGroup = XTypeGroup(
       label: 'images',
       extensions: <String>['jpg', 'png', 'jpeg'],
+      uniformTypeIdentifiers: <String>['public.jpg', 'public.png', 'public.jpeg'],
     );
     // Abre ventana nativa de macOS
-    final XFile? file = await openFile(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
+    final XFile? file = await openFile(
+      acceptedTypeGroups: <XTypeGroup>[typeGroup]
+    );
     
-    if (file != null) {
+    if (file == null) {
+      return;
+    } else {
       setState(() {
         _imagePath = file.path;
       });

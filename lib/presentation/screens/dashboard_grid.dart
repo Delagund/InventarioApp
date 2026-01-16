@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/category_viewmodel.dart';
 import '../viewmodels/product_viewmodel.dart';
 import '../widgets/product_card.dart';
+import '../widgets/add_product_dialog.dart';
 
 class DashboardGrid extends StatefulWidget {
   const DashboardGrid({super.key});
@@ -64,11 +65,14 @@ class _DashboardGridState extends State<DashboardGrid> {
               ),
               const Spacer(),
               // Aquí irán filtros de ordenamiento en el futuro
-              IconButton(onPressed: () {}, icon: const Icon(Icons.sort)),
+              IconButton(onPressed: () {},
+              icon: const Icon(Icons.sort)),
               const SizedBox(width: 8),
               FilledButton.icon(
-                onPressed: () {
-                  // TODO: Abrir modal de creación de producto
+                onPressed: () { showDialog(
+                  context: context,
+                  builder: (context) => const AddProductDialog(),
+                  );
                 },
                 icon: const Icon(Icons.add),
                 label: const Text("Nuevo Producto"),

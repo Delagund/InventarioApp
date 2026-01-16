@@ -13,6 +13,8 @@ completedColumns:
 
 ## In Progress
 
+- [funcionalidad-crear-producto](tasks/funcionalidad-crear-producto.md)
+
 ## Done
 
 - [domain-definir-entidad-product](tasks/domain-definir-entidad-product.md)

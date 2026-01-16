@@ -42,22 +42,35 @@ class SQLiteProductRepository implements IProductRepository {
   @override
   Future<void> saveProduct(Product product) async {
     final db = await _dbHelper.database;
+    int productId;
 
     if (product.id != null) {
       // Si ya tiene ID, actualizamos el existente: UPDATE
+      productId = product.id!;
       await db.update(
         'products',
         product.toMap(),
         where: 'id = ?',
-        whereArgs: [product.id],
+        whereArgs: [productId],
       );
+      // Limpiamos categorías anteriores para evitar duplicados o datos viejos
+      await db.delete('product_categories', where: 'product_id = ?', whereArgs: [productId]);
     } else {
       // Si no tiene ID, es un producto nuevo: INSERT
-      await db.insert(
+      productId = await db.insert(
         'products',
         product.toMap(),
         conflictAlgorithm: ConflictAlgorithm.ignore,
       );
+    }
+
+    // Guardar las relaciones en la tabla pivot
+    if (product.categories != null) {
+      for (final category in product.categories!) {
+        if (category.id != null) {
+          await addCategoryToProduct(productId, category.id!);
+        }
+      }
     }
   }
 

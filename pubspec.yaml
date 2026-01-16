@@ -30,14 +30,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  # Selector de archivos para macOS
+  file_selector: ^1.1.0
     
   # Base de datos SQLite para escritorio
-  sqflite_common_ffi: ^2.4.0
+  sqflite_common_ffi: ^2.4.0+2
   path: ^1.8.3
   path_provider: ^2.1.1
   
   # Gestión de estado (para Clean Architecture)
   provider: ^6.1.1
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

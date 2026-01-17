@@ -138,97 +138,99 @@ class _AddProductDialogState extends State<AddProductDialog> {
       title: const Text('Nuevo Producto'),
       content: SizedBox(
         width: 400, // Ancho fijo cómodo para Desktop
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // --- SELECCIÓN DE IMAGEN ---
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 100,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[400]!),
-                  ),
-                  child: _imagePath != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            File(_imagePath!),
-                            fit: BoxFit.cover,
-                            // Esto muestra un icono si no se puede leer la imagen (por permisos o ruta inválida)
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Icon(Icons.broken_image, color: Colors.red),
-                              );
-                            },
-                          ),
-                        )
-                      : const Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // --- CAMPOS DE TEXTO ---
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nombre del Producto'),
-                validator: (value) => value!.isEmpty ? 'Requerido' : null,
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _skuController,
-                      decoration: const InputDecoration(labelText: 'SKU'),
-                      validator: (value) => value!.isEmpty ? 'Requerido' : null,
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // --- SELECCIÓN DE IMAGEN ---
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    height: 100,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[400]!),
                     ),
+                    child: _imagePath != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(_imagePath!),
+                              fit: BoxFit.cover,
+                              // Esto muestra un icono si no se puede leer la imagen (por permisos o ruta inválida)
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(Icons.broken_image, color: Colors.red),
+                                );
+                              },
+                            ),
+                          )
+                        : const Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _stockController,
-                      decoration: const InputDecoration(labelText: 'Stock Inicial'),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) return 'Requerido';
-                        if (int.tryParse(value) == null) return 'Debe ser número';
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                ),
+                const SizedBox(height: 16),
 
-              // --- SELECCIÓN MÚLTIPLE DE CATEGORÍAS ---
-              InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Categorías',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                // --- CAMPOS DE TEXTO ---
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Nombre del Producto'),
+                  validator: (value) => value!.isEmpty ? 'Requerido' : null,
                 ),
-                child: Wrap(
-                  spacing: 8.0,
-                  children: categories.map((Category cat) {
-                    return FilterChip(
-                      label: Text(cat.name),
-                      selected: _selectedCategoryIds.contains(cat.id),
-                      onSelected: (bool selected) {
-                        setState(() {
-                          selected ? _selectedCategoryIds.add(cat.id!) : _selectedCategoryIds.remove(cat.id);
-                        });
-                      },
-                    );
-                  }).toList(),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _skuController,
+                        decoration: const InputDecoration(labelText: 'SKU'),
+                        validator: (value) => value!.isEmpty ? 'Requerido' : null,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _stockController,
+                        decoration: const InputDecoration(labelText: 'Stock Inicial'),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Requerido';
+                          if (int.tryParse(value) == null) return 'Debe ser número';
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                // --- SELECCIÓN MÚLTIPLE DE CATEGORÍAS ---
+                InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Categorías',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  child: Wrap(
+                    spacing: 8.0,
+                    children: categories.map((Category cat) {
+                      return FilterChip(
+                        label: Text(cat.name),
+                        selected: _selectedCategoryIds.contains(cat.id),
+                        onSelected: (bool selected) {
+                          setState(() {
+                            selected ? _selectedCategoryIds.add(cat.id!) : _selectedCategoryIds.remove(cat.id);
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

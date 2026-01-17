@@ -28,6 +28,12 @@ void main() {
       quantity: 10,
       createdAt: DateTime.now(),
     );
+    
+    final tCategory = Category(
+      id: 5, 
+      name: 'Electrónica', 
+      description: 'Gadgets'
+    );
 
     test('El estado inicial debe ser correcto', () {
       expect(viewModel.products, []);
@@ -54,6 +60,19 @@ void main() {
       expect(viewModel.products.first.name, 'Producto Test');
       // Verificamos que el repositorio fue llamado una vez
       verify(mockRepository.getAllProducts()).called(1);
+    });
+
+    test('loadProducts con categoría debe filtrar la lista', () async {
+      // ARRANGE: Simulamos que el repo devuelve productos filtrados por ID 5
+      when(mockRepository.getProductsByCategory(tCategory.id!))
+          .thenAnswer((_) async => [tProduct]);
+
+      // ACT: Pedimos cargar productos pasando la categoría
+      await viewModel.loadProducts(category: tCategory);
+
+      // ASSERT: Verificamos que se llamó al método de filtrado y no al de "todos"
+      verify(mockRepository.getProductsByCategory(tCategory.id!)).called(1);
+      expect(viewModel.products.length, 1);
     });
 
     test('addProduct debe guardar y recargar la lista', () async {

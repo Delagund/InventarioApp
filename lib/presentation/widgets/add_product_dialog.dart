@@ -89,7 +89,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
   }
 
   // Lógica de Guardado
-  void _submit() {
+  Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
       // 1. Validar lógica extra (ej. categoría obligatoria)
       if (_selectedCategoryIds.isEmpty) {
@@ -119,10 +119,13 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
       // 3. Llamar al ViewModel
       // listen: false porque estamos dentro de un callback, no repintando
-      context.read<ProductViewModel>().addProduct(newProduct);
+      // IMPORTANTE: Usamos await para asegurar que se guarde en DB antes de actualizar contadores
+      await context.read<ProductViewModel>().addProduct(newProduct);
       
+      if (!mounted) return; // Verificamos que el widget siga vivo
+
       // 4. Actualizar los contadores de categorías en el Sidebar
-      context.read<CategoryViewModel>().loadCategories();
+      await context.read<CategoryViewModel>().loadCategories();
 
       // 5. Cerrar el diálogo
       Navigator.of(context).pop();

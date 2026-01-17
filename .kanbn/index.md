@@ -13,8 +13,6 @@ completedColumns:
 
 ## In Progress
 
-- [funcionalidad-crear-producto](tasks/funcionalidad-crear-producto.md)
-
 ## Done
 
 - [domain-definir-entidad-product](tasks/domain-definir-entidad-product.md)
@@ -25,5 +23,6 @@ completedColumns:
 - [conexión-de-datos-con-ui-view-model](tasks/conexión-de-datos-con-ui-view-model.md)
 - [domain-contrato-iproduct-repository](tasks/domain-contrato-iproduct-repository.md)
 - [infrastructure-implementar-repositorio](tasks/infrastructure-implementar-repositorio.md)
-- [domain-definir-entidad-category](tasks/domain-definir-entidad-category.md)
 - [infrastructure-database-helper](tasks/infrastructure-database-helper.md)
+- [funcionalidad-crear-producto](tasks/funcionalidad-crear-producto.md)
+- [domain-definir-entidad-category](tasks/domain-definir-entidad-category.md)

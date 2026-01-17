@@ -41,7 +41,7 @@ class DatabaseHelper {
         sku TEXT UNIQUE NOT NULL,
         name TEXT NOT NULL,
         barcode TEXT,
-        quantity INTEGER DEFAULT 0,
+        quantity INTEGER DEFAULT 0 CHECK(quantity >= 0),
         description TEXT,
         image_path TEXT,
         created_at TEXT

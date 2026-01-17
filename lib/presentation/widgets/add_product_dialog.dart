@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:path_provider/path_provider.dart';
@@ -95,6 +96,13 @@ class _AddProductDialogState extends State<AddProductDialog> {
       if (_selectedCategoryIds.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Por favor selecciona al menos una categoría')),
+        );
+        return;
+      }
+
+      if (_stockController.text.isEmpty || int.parse(_stockController.text) < 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('El stock inicial no puede estar vacío o ser negativo')),
         );
         return;
       }
@@ -211,6 +219,9 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         controller: _stockController,
                         decoration: const InputDecoration(labelText: 'Stock Inicial'),
                         keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Requerido';
                           if (int.tryParse(value) == null) return 'Debe ser número';

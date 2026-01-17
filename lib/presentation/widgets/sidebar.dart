@@ -62,6 +62,7 @@ class Sidebar extends StatelessWidget {
                   const Center(child: CircularProgressIndicator())
                 else
                   ...categoryVM.categories.map((category) => _SidebarItem(
+                        category: category,
                         icon: Icons.folder_open,
                         title: category.name,
                         // Aquí usamos el productCount calculado por SQLite
@@ -118,6 +119,7 @@ class Sidebar extends StatelessWidget {
 }
 
 class _SidebarItem extends StatelessWidget {
+  final Category? category;
   final IconData icon;
   final String title;
   final int? count;
@@ -125,6 +127,7 @@ class _SidebarItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const _SidebarItem({
+    this.category,
     required this.icon,
     required this.title,
     this.count,
@@ -157,8 +160,11 @@ class _SidebarItem extends StatelessWidget {
             fontSize: 14,
           ),
         ),
-        trailing: count != null
-            ? Container(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (count != null)
+              Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: isSelected 
@@ -174,8 +180,16 @@ class _SidebarItem extends StatelessWidget {
                     color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-              )
-            : null,
+              ),
+            // Botón para eliminar la categoría (si existe el objeto)
+            if (category != null)
+              IconButton(
+                icon: const Icon(Icons.close, size: 16),
+                tooltip: "Eliminar categoría",
+                onPressed: () => context.read<CategoryViewModel>().deleteCategory(category!.id!),
+              ),
+          ],
+        ),
         dense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/foundation.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -25,6 +26,9 @@ class DatabaseHelper {
     return await openDatabase(
       path,
       version: 1,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
       onCreate: _onCreate,
     );
   }
@@ -65,5 +69,10 @@ class DatabaseHelper {
     ''');
     
     print("Base de datos y tablas creadas con éxito."); // MARK : borrar antes de producción
+  }
+
+  @visibleForTesting
+  static void setDatabase(Database db) {
+    _database = db;
   }
 }

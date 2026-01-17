@@ -118,14 +118,15 @@ class _AddProductDialogState extends State<AddProductDialog> {
       );
 
       // 3. Llamar al ViewModel
-      // listen: false porque estamos dentro de un callback, no repintando
-      // IMPORTANTE: Usamos await para asegurar que se guarde en DB antes de actualizar contadores
-      await context.read<ProductViewModel>().addProduct(newProduct);
-      
-      if (!mounted) return; // Verificamos que el widget siga vivo
+      // Capturamos las referencias antes de los await para no depender del context entre pausas
+      final productVM = context.read<ProductViewModel>();
+      final categoryVM = context.read<CategoryViewModel>();
 
-      // 4. Actualizar los contadores de categorías en el Sidebar
-      await context.read<CategoryViewModel>().loadCategories();
+      // Ejecutamos las operaciones asíncronas secuencialmente
+      await productVM.addProduct(newProduct);
+      await categoryVM.loadCategories();
+
+      if (!mounted) return;
 
       // 5. Cerrar el diálogo
       Navigator.of(context).pop();

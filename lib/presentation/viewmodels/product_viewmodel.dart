@@ -47,4 +47,10 @@ class ProductViewModel extends ChangeNotifier {
     await repository.deleteProduct(id);
     await loadProducts();
   }
+
+  // Verificar si un SKU ya existe en la base de datos
+  Future<bool> checkSkuExists(String sku) async {
+    final product = await repository.getProductBySku(sku);
+    return product != null;
+  }
 }

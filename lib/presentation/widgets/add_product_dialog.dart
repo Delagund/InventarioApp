@@ -120,8 +120,11 @@ class _AddProductDialogState extends State<AddProductDialog> {
       // 3. Llamar al ViewModel
       // listen: false porque estamos dentro de un callback, no repintando
       context.read<ProductViewModel>().addProduct(newProduct);
+      
+      // 4. Actualizar los contadores de categorías en el Sidebar
+      context.read<CategoryViewModel>().loadCategories();
 
-      // 4. Cerrar el diálogo
+      // 5. Cerrar el diálogo
       Navigator.of(context).pop();
     }
   }

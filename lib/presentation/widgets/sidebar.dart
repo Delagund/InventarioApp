@@ -78,7 +78,6 @@ class Sidebar extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: FilledButton.tonalIcon(
               onPressed: () {
-                // TODO: Abrir diálogo para agregar categoría
                 _showAddCategoryDialog(context, categoryVM);
               },
               icon: const Icon(Icons.add),

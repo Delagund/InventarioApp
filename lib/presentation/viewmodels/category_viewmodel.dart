@@ -16,10 +16,10 @@ class CategoryViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   CategoryViewModel({required CategoryRepository repository}) : _repository = repository {
-    _loadCategories();
+    loadCategories();
   }
 
-  Future<void> _loadCategories() async {
+  Future<void> loadCategories() async {
     _isLoading = true;
     notifyListeners();
 
@@ -43,7 +43,7 @@ class CategoryViewModel extends ChangeNotifier {
   Future<void> addCategory(String name, String? description) async {
     final newCategory = Category(name: name, description: description);
     await _repository.createCategory(newCategory);
-    await _loadCategories(); // Recargamos para actualizar la lista y los conteos
+    await loadCategories(); // Recargamos para actualizar la lista y los conteos
   }
 
   Future<void> deleteCategory(int id) async {
@@ -52,6 +52,6 @@ class CategoryViewModel extends ChangeNotifier {
     if (_selectedCategory?.id == id) {
       _selectedCategory = null;
     }
-    await _loadCategories();
+    await loadCategories();
   }
 }

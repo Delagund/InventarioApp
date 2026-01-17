@@ -1,10 +1,10 @@
 ---
 created: 2026-01-16T03:40:39.022Z
-updated: 2026-01-16T05:36:01.389Z
+updated: 2026-01-16T18:39:16.308Z
 assigned: me
-progress: 0.3
+progress: 0.75
 tags: []
-started: 2026-01-16T00:00:00.000Z
+started: 2026-01-15T00:00:00.000Z
 ---
 
 # Funcionalidad "Crear Producto"
@@ -25,6 +25,6 @@ Tarea de codificación de dialogo de creación de nuevos productos.
 
 - [x] [Infraestructura] Configurar selector de archivos
 - [x] [Presentation] Crear Widget AddProductDialog
-- [ ] [Presentation] Integrar Selector de Categorías
+- [x] [Presentation] Integrar Selector de Categorías
 - [ ] [Logic] Gestionar Estado del Formulario
-- [ ] [Domain/Presentation] Conectar "Guardar"
+- [x] [Domain/Presentation] Conectar "Guardar"

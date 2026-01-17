@@ -68,6 +68,9 @@ class _DashboardGridState extends State<DashboardGrid> {
         await productVM.deleteProduct(id);
       }
       
+      // Actualizar los contadores del Sidebar
+      if (mounted) context.read<CategoryViewModel>().loadCategories();
+
       _toggleSelectionMode();
       
       if (mounted) {

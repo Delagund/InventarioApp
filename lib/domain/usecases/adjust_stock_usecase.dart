@@ -8,7 +8,8 @@ class AdjustStockUseCase {
   Future<void> execute({
     required int productId, 
     required int quantityDelta, 
-    required String reason
+    required String reason,
+    String user = "Local_user",
   }) async {
     // Validaciones de negocio (opcional)
     if (quantityDelta == 0) {
@@ -19,6 +20,6 @@ class AdjustStockUseCase {
     // final product = await _repository.getProductById(productId);
     // if (product.quantity + quantityDelta < 0) throw Exception("Stock insuficiente");
 
-    await _repository.updateStock(productId, quantityDelta, reason);
+    await _repository.updateStock(productId, quantityDelta, reason, user: user);
   }
 }

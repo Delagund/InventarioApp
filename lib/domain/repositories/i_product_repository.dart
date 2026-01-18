@@ -24,5 +24,5 @@ abstract class IProductRepository {
   Future<void> removeCategoryFromProduct(int productId, int categoryId);
 
   // Actualizar el stock de un producto
-  Future<void> updateStock(int productId, int quantityDelta, String reason);
+  Future<void> updateStock(int productId, int quantityDelta, String reason, {String user});
 }

@@ -144,7 +144,7 @@ class SQLiteProductRepository implements IProductRepository {
   }
 
   @override
-  Future<void> updateStock(int productId, int quantityDelta, String reason) async {
+  Future<void> updateStock(int productId, int quantityDelta, String reason, {String? user = "Local_user"}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       // 1. Actualizar el stock actual del producto
@@ -159,6 +159,7 @@ class SQLiteProductRepository implements IProductRepository {
         'product_id': productId,
         'quantity_delta': quantityDelta,
         'reason': reason,
+        'user_name': user,
         'date': DateTime.now().toIso8601String(),
       });
     });

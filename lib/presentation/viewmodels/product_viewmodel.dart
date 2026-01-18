@@ -88,6 +88,7 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
+  // Actualizar stock de un producto
   Future<bool> updateProductStock(int productId, int delta, String reason) async {
     _setLoading(true);
     try {
@@ -108,7 +109,39 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
-  // Método para seleccionar un producto
+  // Método auxiliar para calcular delta y ejecutar
+  Future<bool> adjustStockFromInspector(int productId, int currentQty, int newQty) async {
+    final delta = newQty - currentQty;
+    if (delta == 0) return true; // No hubo cambios
+
+    _setLoading(true);
+    try {
+      // Llamamos al repositorio directamente o via UseCase. 
+      // Por simplicidad en este paso, asumimos que el repository tiene el método actualizado.
+      await _repository.updateStock(
+        productId, 
+        delta, 
+        "Ajuste Manual desde Inspector", 
+        user: "Local_user" // Requerimiento: Usuario fijo por ahora
+      );
+      
+      await loadProducts(); // Recargar para actualizar la UI
+      // Si el producto seleccionado sigue siendo el mismo, actualizamos la selección
+      if (_selectedProduct?.id == productId) {
+        // Buscamos el producto actualizado en la lista nueva
+        _selectedProduct = _products.firstWhere((p) => p.id == productId);
+      }
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      debugPrint("Error al ajustar stock desde inspector: $_errorMessage");
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Método auxiliar para seleccionar un producto
   void selectProduct(Product? product) {
     _selectedProduct = product;
     notifyListeners();

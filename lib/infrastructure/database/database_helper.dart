@@ -75,12 +75,13 @@ class DatabaseHelper {
         product_id INTEGER NOT NULL,
         quantity_delta INTEGER NOT NULL,
         reason TEXT,
+        user_name TEXT,
         date TEXT,
         FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
       )
     ''');
     
-    print("Base de datos y tablas creadas con éxito."); // TODO : borrar antes de producción
+    debugPrint("Base de datos creada en $db"); // Log para confirmar la creación
   }
 
   @visibleForTesting

@@ -15,6 +15,10 @@ class ProductViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  //Propiedad de producto seleccionado
+  Product? _selectedProduct;
+  Product? get selectedProduct => _selectedProduct; //getter
+
   // Getters para que la UI pueda leer los datos pero no modificarlos directamente
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
@@ -69,7 +73,6 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
-
   // Eliminar producto
   Future<void> deleteProduct(int id) async {
     _isLoading = true;
@@ -105,6 +108,13 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
+  // Método para seleccionar un producto
+  void selectProduct(Product? product) {
+    _selectedProduct = product;
+    notifyListeners();
+  }
+
+  // método auxiliar para establecer el estado de carga y notificar a los oyentes
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();

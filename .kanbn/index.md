@@ -11,6 +11,10 @@ completedColumns:
 
 ## Todo
 
+- [lógica-de-estado-de-inspector-visual](tasks/lógica-de-estado-de-inspector-visual.md)
+- [interfaz-de-usuario-de-inspector-visual](tasks/interfaz-de-usuario-de-inspector-visual.md)
+- [integración-dashboard-del-inspector](tasks/integración-dashboard-del-inspector.md)
+
 ## In Progress
 
 ## Done

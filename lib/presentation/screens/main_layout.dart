@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/sidebar.dart';
+import '../widgets/inspector_panel.dart';
 import 'dashboard_grid.dart';
 
 class MainLayout extends StatelessWidget {
@@ -32,26 +33,9 @@ class MainLayout extends StatelessWidget {
           const VerticalDivider(width: 1, thickness: 1),
 
           // COLUMNA 3: Inspector (Detalles y Stock)
-          // Ancho fijo de 300px (típico para paneles de detalles en escritorio)
-          Container(
-            width: 300,
-            color: theme.colorScheme.surfaceContainerLow,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.info_outline, size: 48, color: theme.colorScheme.outline),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Inspector",
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: theme.colorScheme.outline,
-                    ),
-                  ),
-                  const Text("Selecciona un producto"),
-                ],
-              ),
-            ),
+          SizedBox(
+            width: 350, // Ancho fijo para el panel lateral
+            child: const InspectorPanel(),
           ),
         ],
       ),

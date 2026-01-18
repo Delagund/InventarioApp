@@ -234,7 +234,7 @@ class _DashboardGridState extends State<DashboardGrid> {
                               onTap: _isSelectionMode 
                                   ? () => _toggleProductSelection(product.id!)
                                   : () {
-                                      // TODO: Seleccionar producto para el Inspector
+                                      context.read<ProductViewModel>().selectProduct(product);
                                     },
                             ),
                             if (_isSelectionMode) ...[

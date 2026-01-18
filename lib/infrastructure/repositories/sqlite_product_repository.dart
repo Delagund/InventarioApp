@@ -63,70 +63,6 @@ class SQLiteProductRepository implements IProductRepository {
       // o un JOIN, pero para listados rápidos esto es lo más eficiente.
     });
   }
-  
-  
-  /*
-  @override
-  Future<List<Product>> getAllProducts() async {
-    final db = await _dbHelper.database;
-    // Consultamos todos los registros de la tabla 'products'
-    final List<Map<String, dynamic>> maps = await db.query('products');
-
-   List<Product> products = [];
-   for (var map in maps) {
-     // Obtener categorías asociadas al producto
-     final categories = await _getCategoriesForProduct(map['id']);
-     products.add(Product.fromMap(map, categories: categories));
-   }
-   return products;
-  }
-
-  @override
-  Future<List<Product>> getProductsByCategory(int categoryId) async {
-    final db = await _dbHelper.database;
-    
-    // Hacemos JOIN con la tabla intermedia 'product_categories'
-    final List<Map<String, dynamic>> results = await db.rawQuery('''
-      SELECT p.*
-      FROM products p
-      INNER JOIN product_categories pc ON p.id = pc.product_id
-      WHERE pc.category_id = ?
-    ''', [categoryId]);
-
-    return results.map((map) => Product.fromMap(map)).toList();
-  }
-
-  @override
-  Future<Product?> getProductById(int id) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'products',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (maps.isNotEmpty) {
-      return Product.fromMap(maps.first);
-    }
-    return null;
-  }
-
-  @override
-  Future<Product?> getProductBySku(String sku) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'products',
-      where: 'sku = ?',
-      whereArgs: [sku],
-    );
-
-    if (maps.isNotEmpty) {
-      return Product.fromMap(maps.first);
-    }
-    return null;
-  }
-
-  */
 
   @override
   Future<void> saveProduct(Product product) async {
@@ -205,5 +141,26 @@ class SQLiteProductRepository implements IProductRepository {
     await db.delete('product_categories',
         where: 'product_id = ? AND category_id = ?',
         whereArgs: [productId, categoryId]);
+  }
+
+  @override
+  Future<void> updateStock(int productId, int quantityDelta, String reason) async {
+    final db = await _dbHelper.database;
+    await db.transaction((txn) async {
+      // 1. Actualizar el stock actual del producto
+      // Usamos rawUpdate para sumar/restar directamente en SQL (más seguro ante concurrencia)
+      await txn.rawUpdate(
+        'UPDATE products SET quantity = quantity + ? WHERE id = ?',
+        [quantityDelta, productId]
+      );
+
+      // 2. Insertar el registro histórico
+      await txn.insert('stock_history', {
+        'product_id': productId,
+        'quantity_delta': quantityDelta,
+        'reason': reason,
+        'date': DateTime.now().toIso8601String(),
+      });
+    });
   }
 }

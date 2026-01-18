@@ -67,6 +67,18 @@ class DatabaseHelper {
         PRIMARY KEY (product_id, category_id)
       )
     ''');
+
+    // 4. Tabla de Historial de Stock
+    await db.execute('''
+      CREATE TABLE stock_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER NOT NULL,
+        quantity_delta INTEGER NOT NULL,
+        reason TEXT,
+        date TEXT,
+        FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+      )
+    ''');
     
     print("Base de datos y tablas creadas con éxito."); // TODO : borrar antes de producción
   }

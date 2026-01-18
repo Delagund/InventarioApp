@@ -3,10 +3,12 @@ import '../../domain/models/product.dart';
 import '../../domain/repositories/i_product_repository.dart';
 import '../../domain/usecases/create_product_usecase.dart';
 import '../../domain/models/product_filter.dart';
+import '../../domain/usecases/adjust_stock_usecase.dart';
 
 class ProductViewModel extends ChangeNotifier {
   final CreateProductUseCase _createProductUseCase; // Inyectamos el Caso de Uso
   final IProductRepository _repository; // Inyectamos el Repositorio
+  final AdjustStockUseCase _adjustStockUseCase; // Inyectamos el Caso de Uso para ajustar stock
 
   // Estado interno
   List<Product> _products = [];
@@ -22,7 +24,8 @@ class ProductViewModel extends ChangeNotifier {
   ProductViewModel({
     required IProductRepository repository,
   })  : _repository = repository,
-        _createProductUseCase = CreateProductUseCase(repository);
+        _createProductUseCase = CreateProductUseCase(repository),
+        _adjustStockUseCase = AdjustStockUseCase(repository);
 
   // Cargar inicial de productos de la DB aplicando filtros
   Future<void> loadProducts({ProductFilter? filter}) async {
@@ -82,15 +85,27 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
+  Future<bool> updateProductStock(int productId, int delta, String reason) async {
+    _setLoading(true);
+    try {
+      await _adjustStockUseCase.execute(
+        productId: productId, 
+        quantityDelta: delta, 
+        reason: reason
+      );
+
+      await loadProducts(); // Recargar para ver el nuevo stock en la Grid
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
   }
-  // TODO: Borrar lineas siguientes si no se usan
-  /*
-  // Verificar si un SKU ya existe en la base de datos
-  Future<bool> checkSkuExists(String sku) async {
-    final product = await repository.getProductBySku(sku);
-    return product != null;
-  }*/
 }

@@ -8,20 +8,6 @@ abstract class IProductRepository {
   // Obtener productos con filtros dinámicos.
   Future<List<Product>> getProducts({required ProductFilter filter});
 
-  /*
-  // Obtener todos los productos
-  Future<List<Product>> getAllProducts();
-
-  // Obtener un producto por su ID interno de SQLite
-  Future<Product?> getProductById(int id);
-
-  // Buscar un producto por su código SKU (requerimiento principal)
-  Future<Product?> getProductBySku(String sku);
-  
-  // Obtener productos por categoría
-  Future<List<Product>> getProductsByCategory(int categoryId);
-  */
-
   // Guardar un nuevo producto o actualizar uno existente
   Future<void> saveProduct(Product product);
 
@@ -36,4 +22,7 @@ abstract class IProductRepository {
 
   // Desvincular un producto de una categoría
   Future<void> removeCategoryFromProduct(int productId, int categoryId);
+
+  // Actualizar el stock de un producto
+  Future<void> updateStock(int productId, int quantityDelta, String reason);
 }

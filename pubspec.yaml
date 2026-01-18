@@ -42,6 +42,8 @@ dependencies:
   # Gestión de estado (para Clean Architecture)
   provider: ^6.1.1
 
+  # Otras dependencias
+  get_it: ^9.2.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

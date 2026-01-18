@@ -133,21 +133,32 @@ class _AddProductDialogState extends State<AddProductDialog> {
       // Ejecutamos las operaciones asíncronas secuencialmente
       final bool success = await productVM.addProduct(newProduct);
 
-      if (!success) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(productVM.errorMessage ?? 'Error al guardar el producto')),
-        );
-        return; // Detenemos aquí para no cerrar el diálogo y permitir corregir
-      }
-
-      // Si tuvo éxito, actualizamos categorías
-      await categoryVM.loadCategories();
-
       if (!mounted) return;
 
-      // 5. Cerrar el diálogo
-      Navigator.of(context).pop();
+      if (success) {
+        // --- CASO ÉXITO ---
+        // Actualizamos conteos de categorías si es necesario
+        await categoryVM.loadCategories(); 
+        
+        if (mounted) {
+          Navigator.of(context).pop(); // Cerramos el diálogo
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Producto guardado correctamente')),
+          );
+        }
+      } else {
+        // --- CASO ERROR (Validación de Negocio) ---
+        // No cerramos el diálogo. Mostramos el error que capturó el ViewModel.
+        final String errorMsg = productVM.errorMessage ?? 'Error desconocido al guardar';
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 

@@ -64,7 +64,7 @@ class _InspectorPanelState extends State<InspectorPanel> {
       _localStock       // Cantidad deseada (UI)
     );
 
-    if (success && mounted) {
+    if (success && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Inventario actualizado correctamente")),
       );
@@ -76,7 +76,7 @@ class _InspectorPanelState extends State<InspectorPanel> {
     // Llamada al servicio reutilizable (file_selector)
     final newPath = await ImagePickerService.selectAndSaveImage();
 
-    if (newPath != null && mounted) {
+    if (newPath != null && context.mounted) {
       final productVM = context.read<ProductViewModel>();
       
       // Creamos el producto actualizado
@@ -94,7 +94,7 @@ class _InspectorPanelState extends State<InspectorPanel> {
 
       await productVM.updateProductDetails(updatedProduct);
 
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Imagen actualizada"))
         );
@@ -165,7 +165,7 @@ class _InspectorPanelState extends State<InspectorPanel> {
               Navigator.pop(ctx);
               await context.read<ProductViewModel>().deleteProduct(product.id!);
               // Al eliminar, limpiamos la selección
-              if (mounted) context.read<ProductViewModel>().selectProduct(null);
+              if (context.mounted) context.read<ProductViewModel>().selectProduct(null);
             },
             child: const Text("Eliminar"),
           )

@@ -93,12 +93,13 @@ class ProductViewModel extends ChangeNotifier {
         quantityDelta: delta, 
         reason: reason
       );
-
       await loadProducts(); // Recargar para ver el nuevo stock en la Grid
       return true;
+
     } catch (e) {
       _errorMessage = e.toString();
       return false;
+      
     } finally {
       _setLoading(false);
     }

@@ -43,7 +43,7 @@ void main() {
 
     test('loadProducts debe llenar la lista de productos', () async {
       // ARRANGE: Enseñamos al mock qué responder
-      when(mockRepository.getAllProducts())
+      when(mockRepository.getProducts(filter: anyNamed('filter')))
           .thenAnswer((_) async => [tProduct]);
 
       // ACT: Ejecutamos la acción
@@ -60,12 +60,12 @@ void main() {
       expect(viewModel.products.length, 1);
       expect(viewModel.products.first.name, 'Producto Test');
       // Verificamos que el repositorio fue llamado una vez
-      verify(mockRepository.getAllProducts()).called(1);
+      verify(mockRepository.getProducts(filter: anyNamed('filter'))).called(1);
     });
 
     test('loadProducts con categoría debe filtrar la lista', () async {
       // ARRANGE: Simulamos que el repo devuelve productos filtrados por ID 5
-      when(mockRepository.getProductsByCategory(tCategory.id!))
+      when(mockRepository.getProducts(filter: anyNamed('filter')))
           .thenAnswer((_) async => [tProduct]);
 
       // ACT: Pedimos cargar productos pasando la categoría
@@ -74,21 +74,37 @@ void main() {
       );
 
       // ASSERT: Verificamos que se llamó al método de filtrado y no al de "todos"
-      verify(mockRepository.getProductsByCategory(tCategory.id!)).called(1);
+      verify(mockRepository.getProducts(filter: argThat(
+        predicate<ProductFilter>((f) => f.categoryId == tCategory.id),
+        named: 'filter'
+      ))).called(1);
       expect(viewModel.products.length, 1);
     });
 
     test('addProduct debe guardar y recargar la lista', () async {
       // ARRANGE
-      when(mockRepository.getAllProducts())
-          .thenAnswer((_) async => [tProduct]); // Simula que ya se guardó y lo devuelve
+      // 1. Mock para la validación de SKU (debe retornar vacío para permitir guardar)
+      when(mockRepository.getProducts(filter: argThat(
+        predicate<ProductFilter>((f) => f.searchQuery == tProduct.sku),
+        named: 'filter'
+      ))).thenAnswer((_) async => []);
+
+      // 2. Mock para la recarga de lista (debe retornar el producto guardado)
+      when(mockRepository.getProducts(filter: argThat(
+        predicate<ProductFilter>((f) => f.searchQuery == null),
+        named: 'filter'
+      ))).thenAnswer((_) async => [tProduct]);
 
       // ACT
       await viewModel.addProduct(tProduct);
 
       // ASSERT
       verify(mockRepository.saveProduct(tProduct)).called(1);
-      verify(mockRepository.getAllProducts()).called(1); // loadProducts se llama al final de addProduct
+      // Verificamos que se llamó a getProducts para recargar (filtro sin search query)
+      verify(mockRepository.getProducts(filter: argThat(
+        predicate<ProductFilter>((f) => f.searchQuery == null),
+        named: 'filter'
+      ))).called(1);
     });
   });
 }

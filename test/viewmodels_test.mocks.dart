@@ -6,6 +6,7 @@
 import 'dart:async' as _i3;
 
 import 'package:inventory_app/domain/models/product.dart' as _i4;
+import 'package:inventory_app/domain/models/product_filter.dart' as _i5;
 import 'package:inventory_app/domain/repositories/i_product_repository.dart'
     as _i2;
 import 'package:mockito/mockito.dart' as _i1;
@@ -31,38 +32,11 @@ import 'package:mockito/mockito.dart' as _i1;
 class MockIProductRepository extends _i1.Mock
     implements _i2.IProductRepository {
   @override
-  _i3.Future<List<_i4.Product>> getAllProducts() =>
+  _i3.Future<List<_i4.Product>> getProducts({
+    required _i5.ProductFilter? filter,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#getAllProducts, []),
-            returnValue: _i3.Future<List<_i4.Product>>.value(<_i4.Product>[]),
-            returnValueForMissingStub: _i3.Future<List<_i4.Product>>.value(
-              <_i4.Product>[],
-            ),
-          )
-          as _i3.Future<List<_i4.Product>>);
-
-  @override
-  _i3.Future<_i4.Product?> getProductById(int? id) =>
-      (super.noSuchMethod(
-            Invocation.method(#getProductById, [id]),
-            returnValue: _i3.Future<_i4.Product?>.value(),
-            returnValueForMissingStub: _i3.Future<_i4.Product?>.value(),
-          )
-          as _i3.Future<_i4.Product?>);
-
-  @override
-  _i3.Future<_i4.Product?> getProductBySku(String? sku) =>
-      (super.noSuchMethod(
-            Invocation.method(#getProductBySku, [sku]),
-            returnValue: _i3.Future<_i4.Product?>.value(),
-            returnValueForMissingStub: _i3.Future<_i4.Product?>.value(),
-          )
-          as _i3.Future<_i4.Product?>);
-
-  @override
-  _i3.Future<List<_i4.Product>> getProductsByCategory(int? categoryId) =>
-      (super.noSuchMethod(
-            Invocation.method(#getProductsByCategory, [categoryId]),
+            Invocation.method(#getProducts, [], {#filter: filter}),
             returnValue: _i3.Future<List<_i4.Product>>.value(<_i4.Product>[]),
             returnValueForMissingStub: _i3.Future<List<_i4.Product>>.value(
               <_i4.Product>[],

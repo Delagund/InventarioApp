@@ -1,9 +1,14 @@
 import '../models/product.dart';
+import '../models/product_filter.dart';
 
 /// Definimos la interfaz como una clase abstracta.
 
 abstract class IProductRepository {
   
+  // Obtener productos con filtros dinámicos.
+  Future<List<Product>> getProducts({required ProductFilter filter});
+
+  /*
   // Obtener todos los productos
   Future<List<Product>> getAllProducts();
 
@@ -15,6 +20,7 @@ abstract class IProductRepository {
   
   // Obtener productos por categoría
   Future<List<Product>> getProductsByCategory(int categoryId);
+  */
 
   // Guardar un nuevo producto o actualizar uno existente
   Future<void> saveProduct(Product product);

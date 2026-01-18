@@ -1,14 +1,71 @@
 import '../../domain/models/product.dart';
-import '../../domain/models/category.dart';
+import '../../domain/models/product_filter.dart';
 import '../../domain/repositories/i_product_repository.dart';
-import '../../infrastructure/models/category_model.dart';
 import '../database/database_helper.dart';
 import 'package:sqflite/sqflite.dart';
+
+
 
 class SQLiteProductRepository implements IProductRepository {
   // Obtenemos la instancia del DatabaseHelper que creamos antes
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
+  @override
+  Future<List<Product>> getProducts({required ProductFilter filter}) async {
+    final db = await _dbHelper.database;
+    
+    // 1. Construcción Dinámica del WHERE
+    List<String> whereClauses = [];
+    List<dynamic> args = [];
+
+    // Si hay filtro de categoría, buscamos en la tabla intermedia 'product_categories'.
+    // Usamos "id IN (...)" para obtener solo los productos que tengan esa relación.
+    if (filter.categoryId != null) {
+      whereClauses.add(
+        'id IN (SELECT product_id FROM product_categories WHERE category_id = ?)'
+      );
+      args.add(filter.categoryId);
+    }
+
+    // Filtro por Texto (Nombre o SKU)
+    if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
+      whereClauses.add('(name LIKE ? OR sku LIKE ?)');
+      args.add('%${filter.searchQuery}%');
+      args.add('%${filter.searchQuery}%');
+    }
+
+    // Unimos todas las condiciones con "AND"
+    String? whereString = whereClauses.isNotEmpty ? whereClauses.join(' AND ') : null;
+
+    // 2. Definir Ordenamiento (ORDER BY)
+    // Preparamos la lógica para los botones de ordenamiento del Sprint 3
+    String orderBy = 'name ASC'; // Default: Alfabético
+
+    if (filter.orderByStockAsc) {
+      orderBy = 'quantity ASC';
+    } else if (filter.orderByDateDesc) {
+      orderBy = 'created_at DESC'; // Más recientes primero
+    }
+
+    // 3. Ejecutar la Query Principal
+    final List<Map<String, dynamic>> maps = await db.query(
+      'products',
+      where: whereString,
+      whereArgs: args.isNotEmpty ? args : null,
+      orderBy: orderBy,
+    );
+
+    // 4. Mapear a Objetos
+    return List.generate(maps.length, (i) {
+      return Product.fromMap(maps[i]);
+      // Nota: Aquí el producto viene sin sus categorías cargadas (lazy loading).
+      // Si necesitas mostrar las etiquetas en la Grid, necesitarías hacer un fetch extra
+      // o un JOIN, pero para listados rápidos esto es lo más eficiente.
+    });
+  }
+  
+  
+  /*
   @override
   Future<List<Product>> getAllProducts() async {
     final db = await _dbHelper.database;
@@ -38,6 +95,38 @@ class SQLiteProductRepository implements IProductRepository {
 
     return results.map((map) => Product.fromMap(map)).toList();
   }
+
+  @override
+  Future<Product?> getProductById(int id) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'products',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isNotEmpty) {
+      return Product.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  @override
+  Future<Product?> getProductBySku(String sku) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'products',
+      where: 'sku = ?',
+      whereArgs: [sku],
+    );
+
+    if (maps.isNotEmpty) {
+      return Product.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  */
 
   @override
   Future<void> saveProduct(Product product) async {
@@ -72,36 +161,6 @@ class SQLiteProductRepository implements IProductRepository {
         }
       }
     }
-  }
-
-  @override
-  Future<Product?> getProductById(int id) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'products',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (maps.isNotEmpty) {
-      return Product.fromMap(maps.first);
-    }
-    return null;
-  }
-
-  @override
-  Future<Product?> getProductBySku(String sku) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'products',
-      where: 'sku = ?',
-      whereArgs: [sku],
-    );
-
-    if (maps.isNotEmpty) {
-      return Product.fromMap(maps.first);
-    }
-    return null;
   }
 
   @override
@@ -146,20 +205,5 @@ class SQLiteProductRepository implements IProductRepository {
     await db.delete('product_categories',
         where: 'product_id = ? AND category_id = ?',
         whereArgs: [productId, categoryId]);
-  }
-
-  // --- Métodos auxiliares privados ---
-
-  // Este método hace la "magia" del JOIN para traer las categorías de un producto
-  Future<List<Category>> _getCategoriesForProduct(int productId) async {
-    final db = await _dbHelper.database;
-    
-    final List<Map<String, dynamic>> result = await db.rawQuery('''
-      SELECT c.* FROM categories c
-      INNER JOIN product_categories pc ON c.id = pc.category_id
-      WHERE pc.product_id = ?
-    ''', [productId]);
-
-    return result.map((map) => CategoryModel.fromMap(map)).toList();
   }
 }

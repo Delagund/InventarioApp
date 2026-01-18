@@ -1,5 +1,6 @@
 import '../repositories/i_product_repository.dart';
 import '../models/product.dart';
+import '../models/product_filter.dart';
 
 class CreateProductUseCase {
   final IProductRepository _repository;
@@ -8,8 +9,13 @@ class CreateProductUseCase {
 
   Future<void> execute(Product product) async {
     // 1. Regla de Negocio: Validar SKU
-    final existingProduct = await _repository.getProductBySku(product.sku);
-    if (existingProduct != null) {
+    // Nota: getProducts usa búsqueda "LIKE" (parcial) en nombre y SKU.
+    // Debemos verificar si existe una coincidencia EXACTA de SKU en los resultados.
+    final potentialMatches = await _repository.getProducts(
+      filter: ProductFilter(searchQuery: product.sku)
+    );
+
+    if (potentialMatches.any((p) => p.sku == product.sku)) {
       throw Exception("El SKU ${product.sku} ya existe.");
     }
 

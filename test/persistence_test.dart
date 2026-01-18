@@ -7,6 +7,7 @@ import 'package:inventory_app/infrastructure/repositories/sqlite_product_reposit
 import 'package:inventory_app/infrastructure/repositories/sqlite_category_repository.dart';
 import 'package:inventory_app/domain/models/product.dart';
 import 'package:inventory_app/domain/models/category.dart';
+import 'package:inventory_app/domain/models/product_filter.dart';
 void main() {
   // Inicializar FFI para tests de escritorio/memoria
   setUpAll(() {
@@ -75,7 +76,7 @@ void main() {
       
       await productRepo.saveProduct(newProduct);
       
-      final products = await productRepo.getAllProducts();
+      final products = await productRepo.getProducts(filter: ProductFilter());
       expect(products.length, 1);
       expect(products.first.name, 'Laptop');
       expect(products.first.id, isNotNull); // SQLite generó el ID
@@ -86,7 +87,6 @@ void main() {
       final cat = Category(name: 'Electrónica');
       await categoryRepo.createCategory(cat);
       final categories = await categoryRepo.getAllCategories();
-      final catId = categories.first.id!;
 
       // 2. Crear Producto asignado a esa Categoría
       final product = Product(
@@ -97,9 +97,12 @@ void main() {
       await productRepo.saveProduct(product);
 
       // 3. Verificar que el producto guardó la relación
-      final savedProducts = await productRepo.getAllProducts();
-      expect(savedProducts.first.categories?.length, 1);
-      expect(savedProducts.first.categories?.first.id, catId);
+      final savedProducts = await productRepo.getProducts(filter: ProductFilter());
+      expect(savedProducts.length, 1);
+      expect(savedProducts.first.id, isNotNull);
+      
+      // Nota: No verificamos 'categories' aquí porque getProducts usa Lazy Loading.
+      // La persistencia de la relación se confirma en el paso 4 (conteo en categoría).
 
       // 4. Verificar que la categoría actualizó su conteo (JOIN logic)
       final updatedCategories = await categoryRepo.getAllCategories();
@@ -116,7 +119,7 @@ void main() {
       await productRepo.saveProduct(Product(sku: 'P2', name: 'Prod2', categories: [cats[1]]));
 
       // Test: Pedir solo productos de Cat1
-      final cat1Products = await productRepo.getProductsByCategory(cats[0].id!);
+      final cat1Products = await productRepo.getProducts(filter: ProductFilter(categoryId: cats[0].id!));
       
       expect(cat1Products.length, 1);
       expect(cat1Products.first.sku, 'P1');
@@ -129,15 +132,15 @@ void main() {
       await productRepo.saveProduct(Product(sku: 'DEL', name: 'Borrar', categories: [cats.first]));
 
       // Verificar existencia
-      expect((await productRepo.getAllProducts()).length, 1);
+      expect((await productRepo.getProducts(filter: ProductFilter())).length, 1);
       expect((await categoryRepo.getAllCategories()).first.productCount, 1);
 
       // Borrar
-      final prodId = (await productRepo.getAllProducts()).first.id!;
+      final prodId = (await productRepo.getProducts(filter: ProductFilter())).first.id!;
       await productRepo.deleteProduct(prodId);
 
       // Verificar eliminación y conteo 0
-      expect((await productRepo.getAllProducts()).isEmpty, true);
+      expect((await productRepo.getProducts(filter: ProductFilter())).isEmpty, true);
       expect((await categoryRepo.getAllCategories()).first.productCount, 0);
     });
   });

@@ -26,29 +26,15 @@ class ProductViewModel extends ChangeNotifier {
 
   // Cargar inicial de productos de la DB aplicando filtros
   Future<void> loadProducts({ProductFilter? filter}) async {
-    _isLoading = true;
+    _setLoading(true); // Usamos el setter para notificar a la UI
     _errorMessage = null;
 
     try {
-      if (filter == null || filter.isEmpty) {
-        // Cargar todo si no hay categoría seleccionada
-        _products = await _repository.getAllProducts();
-      } else {
-        // Por ahora, aplicamos el filtro en memoria o combinamos métodos existentes
-        if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
-          _products = await _repository.searchProducts(filter.searchQuery!);
-        } else if (filter.categoryId != null) {
-          // Cargar filtrado por categoría
-          _products = await _repository.getProductsByCategory(filter.categoryId!);
-        } else {
-          _products = await _repository.getAllProducts();
-        }
-        
-        // Aplicamos ordenamiento en memoria
-        if (filter.orderByStockAsc) {
-          _products.sort((a, b) => a.quantity.compareTo(b.quantity));
-        }
-      }
+      // Delegamos toda la lógica al repositorio.
+      // El repositorio ya sabe combinar búsqueda + categoría + ordenamiento en SQL.
+      _products = await _repository.getProducts(
+        filter: filter ?? ProductFilter(),
+      );
     } catch (e) {
       _errorMessage = "Error al cargar productos: $e";
       debugPrint(_errorMessage);

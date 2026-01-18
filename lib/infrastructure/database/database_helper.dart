@@ -68,7 +68,7 @@ class DatabaseHelper {
       )
     ''');
     
-    print("Base de datos y tablas creadas con éxito."); // MARK : borrar antes de producción
+    print("Base de datos y tablas creadas con éxito."); // TODO : borrar antes de producción
   }
 
   @visibleForTesting

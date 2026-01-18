@@ -5,6 +5,7 @@ import 'package:inventory_app/domain/repositories/i_product_repository.dart';
 import 'package:inventory_app/domain/models/product.dart';
 import 'package:inventory_app/domain/models/category.dart';
 import 'package:inventory_app/presentation/viewmodels/product_viewmodel.dart';
+import 'package:inventory_app/domain/models/product_filter.dart';
 
 // Genera el código para MockIProductRepository
 // Ejecuta en terminal: flutter pub run build_runner build
@@ -68,7 +69,9 @@ void main() {
           .thenAnswer((_) async => [tProduct]);
 
       // ACT: Pedimos cargar productos pasando la categoría
-      await viewModel.loadProducts(category: tCategory);
+      await viewModel.loadProducts(
+        filter: ProductFilter(categoryId: tCategory.id),
+      );
 
       // ASSERT: Verificamos que se llamó al método de filtrado y no al de "todos"
       verify(mockRepository.getProductsByCategory(tCategory.id!)).called(1);

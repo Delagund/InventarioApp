@@ -111,17 +111,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
       final categoryVM = context.read<CategoryViewModel>();
       final productVM = context.read<ProductViewModel>();
 
-      // Validar SKU único: Consultamos al ViewModel antes de continuar
-      final bool skuExists = await productVM.checkSkuExists(_skuController.text);
-
-      if (skuExists) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('El SKU ingresado ya existe. Por favor usa uno diferente.')),
-        );
-        return;
-      }
-
       // Obtenemos la lista de objetos Category basada en los IDs seleccionados
       final selectedCategories = categoryVM.categories
           .where((c) => _selectedCategoryIds.contains(c.id)).toList();
@@ -142,7 +131,17 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
       // 3. Llamar al ViewModel
       // Ejecutamos las operaciones asíncronas secuencialmente
-      await productVM.addProduct(newProduct);
+      final bool success = await productVM.addProduct(newProduct);
+
+      if (!success) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(productVM.errorMessage ?? 'Error al guardar el producto')),
+        );
+        return; // Detenemos aquí para no cerrar el diálogo y permitir corregir
+      }
+
+      // Si tuvo éxito, actualizamos categorías
       await categoryVM.loadCategories();
 
       if (!mounted) return;

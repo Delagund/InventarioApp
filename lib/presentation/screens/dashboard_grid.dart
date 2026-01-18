@@ -4,6 +4,7 @@ import '../viewmodels/category_viewmodel.dart';
 import '../viewmodels/product_viewmodel.dart';
 import '../widgets/product_card.dart';
 import '../widgets/add_product_dialog.dart';
+import '../../domain/models/product_filter.dart';
 
 class DashboardGrid extends StatefulWidget {
   const DashboardGrid({super.key});
@@ -104,7 +105,11 @@ class _DashboardGridState extends State<DashboardGrid> {
   void _onCategoryChanged() {
     if (!mounted) return;
     final selectedCategory = context.read<CategoryViewModel>().selectedCategory;
-    context.read<ProductViewModel>().loadProducts(category: selectedCategory);
+    context.read<ProductViewModel>().loadProducts(
+      filter: selectedCategory != null 
+          ? ProductFilter(categoryId: selectedCategory.id) 
+          : ProductFilter(),
+    );
   }
 
   @override

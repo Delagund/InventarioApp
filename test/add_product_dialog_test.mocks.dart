@@ -3,17 +3,16 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
-import 'dart:ui' as _i7;
+import 'dart:async' as _i4;
+import 'dart:ui' as _i6;
 
-import 'package:inventory_app/domain/models/category.dart' as _i6;
-import 'package:inventory_app/domain/models/product.dart' as _i4;
-import 'package:inventory_app/domain/repositories/i_product_repository.dart'
-    as _i2;
+import 'package:inventory_app/domain/models/category.dart' as _i8;
+import 'package:inventory_app/domain/models/product.dart' as _i3;
+import 'package:inventory_app/domain/models/product_filter.dart' as _i5;
 import 'package:inventory_app/presentation/viewmodels/category_viewmodel.dart'
-    as _i8;
+    as _i7;
 import 'package:inventory_app/presentation/viewmodels/product_viewmodel.dart'
-    as _i3;
+    as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -31,39 +30,18 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
-class _FakeIProductRepository_0 extends _i1.SmartFake
-    implements _i2.IProductRepository {
-  _FakeIProductRepository_0(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
 /// A class which mocks [ProductViewModel].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProductViewModel extends _i1.Mock implements _i3.ProductViewModel {
+class MockProductViewModel extends _i1.Mock implements _i2.ProductViewModel {
   @override
-  _i2.IProductRepository get repository =>
-      (super.noSuchMethod(
-            Invocation.getter(#repository),
-            returnValue: _FakeIProductRepository_0(
-              this,
-              Invocation.getter(#repository),
-            ),
-            returnValueForMissingStub: _FakeIProductRepository_0(
-              this,
-              Invocation.getter(#repository),
-            ),
-          )
-          as _i2.IProductRepository);
-
-  @override
-  List<_i4.Product> get products =>
+  List<_i3.Product> get products =>
       (super.noSuchMethod(
             Invocation.getter(#products),
-            returnValue: <_i4.Product>[],
-            returnValueForMissingStub: <_i4.Product>[],
+            returnValue: <_i3.Product>[],
+            returnValueForMissingStub: <_i3.Product>[],
           )
-          as List<_i4.Product>);
+          as List<_i3.Product>);
 
   @override
   bool get isLoading =>
@@ -84,40 +62,40 @@ class MockProductViewModel extends _i1.Mock implements _i3.ProductViewModel {
           as bool);
 
   @override
-  _i5.Future<void> loadProducts({_i6.Category? category}) =>
+  _i4.Future<void> loadProducts({_i5.ProductFilter? filter}) =>
       (super.noSuchMethod(
-            Invocation.method(#loadProducts, [], {#category: category}),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            Invocation.method(#loadProducts, [], {#filter: filter}),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i5.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i5.Future<void> addProduct(_i4.Product? product) =>
+  _i4.Future<bool> addProduct(_i3.Product? product) =>
       (super.noSuchMethod(
             Invocation.method(#addProduct, [product]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i4.Future<bool>.value(false),
+            returnValueForMissingStub: _i4.Future<bool>.value(false),
           )
-          as _i5.Future<void>);
+          as _i4.Future<bool>);
 
   @override
-  _i5.Future<void> deleteProduct(int? id) =>
+  _i4.Future<void> deleteProduct(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteProduct, [id]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i5.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i6.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i7.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i6.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
@@ -138,15 +116,15 @@ class MockProductViewModel extends _i1.Mock implements _i3.ProductViewModel {
 /// A class which mocks [CategoryViewModel].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCategoryViewModel extends _i1.Mock implements _i8.CategoryViewModel {
+class MockCategoryViewModel extends _i1.Mock implements _i7.CategoryViewModel {
   @override
-  List<_i6.Category> get categories =>
+  List<_i8.Category> get categories =>
       (super.noSuchMethod(
             Invocation.getter(#categories),
-            returnValue: <_i6.Category>[],
-            returnValueForMissingStub: <_i6.Category>[],
+            returnValue: <_i8.Category>[],
+            returnValueForMissingStub: <_i8.Category>[],
           )
-          as List<_i6.Category>);
+          as List<_i8.Category>);
 
   @override
   bool get isLoading =>
@@ -167,46 +145,46 @@ class MockCategoryViewModel extends _i1.Mock implements _i8.CategoryViewModel {
           as bool);
 
   @override
-  _i5.Future<void> loadCategories() =>
+  _i4.Future<void> loadCategories() =>
       (super.noSuchMethod(
             Invocation.method(#loadCategories, []),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i5.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  void selectCategory(_i6.Category? category) => super.noSuchMethod(
+  void selectCategory(_i8.Category? category) => super.noSuchMethod(
     Invocation.method(#selectCategory, [category]),
     returnValueForMissingStub: null,
   );
 
   @override
-  _i5.Future<void> addCategory(String? name, String? description) =>
+  _i4.Future<void> addCategory(String? name, String? description) =>
       (super.noSuchMethod(
             Invocation.method(#addCategory, [name, description]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i5.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i5.Future<void> deleteCategory(int? id) =>
+  _i4.Future<void> deleteCategory(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteCategory, [id]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i5.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i6.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i7.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i6.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );

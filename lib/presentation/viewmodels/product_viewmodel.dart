@@ -60,6 +60,7 @@ class ProductViewModel extends ChangeNotifier {
   Future<bool> addProduct(Product product) async {
     _isLoading = true;
     _errorMessage = null;
+    notifyListeners();
     
     try {
       // Delegamos toda la lógica al caso de uso
@@ -84,12 +85,16 @@ class ProductViewModel extends ChangeNotifier {
 
     try {
       await _repository.deleteProduct(id);
+      // Si el producto eliminado estaba seleccionado, deseleccionarlo
+      if (_selectedProduct?.id == id) {
+        selectProduct(null);
+      }
       await loadProducts();
     } catch (e) {
       _errorMessage = "Error al eliminar: $e";
       debugPrint(_errorMessage);
     } finally {
-      _setLoading(false); // Usamos el helper para evitar repetir notifyListeners
+      _setLoading(false);
     }
   }
 
@@ -114,6 +119,30 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
+  // Actualizar detalles generales del producto (Nombre, Imagen, etc.)
+  Future<void> updateProductDetails(Product updatedProduct) async {
+    _setLoading(true);
+    try {
+      // Asumimos que saveProduct realiza un UPSERT (Actualiza si existe ID)
+      await _repository.saveProduct(updatedProduct);
+      
+      await loadProducts(); // Recargar lista para reflejar cambios
+      
+      // Si el producto editado es el que está seleccionado, actualizamos su referencia
+      if (_selectedProduct?.id == updatedProduct.id) {
+        _selectedProduct = _products.firstWhere(
+          (p) => p.id == updatedProduct.id,
+          orElse: () => updatedProduct
+        );
+      }
+    } catch (e) {
+      _errorMessage = "Error al actualizar: $e";
+      debugPrint(_errorMessage);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Método auxiliar para calcular delta y ejecutar
   Future<bool> adjustStockFromInspector(int productId, int currentQty, int newQty) async {
     final delta = newQty - currentQty;
@@ -123,10 +152,10 @@ class ProductViewModel extends ChangeNotifier {
     try {
       // Llamamos al repositorio directamente o via UseCase. 
       // Por simplicidad en este paso, asumimos que el repository tiene el método actualizado.
-      await _repository.updateStock(
-        productId, 
-        delta, 
-        "Ajuste Manual desde Inspector", 
+      await _adjustStockUseCase.execute(
+        productId: productId, 
+        quantityDelta: delta, 
+        reason: "Ajuste Manual desde Inspector", 
         user: "Local_user" // Requerimiento: Usuario fijo por ahora
       );
       
@@ -135,12 +164,15 @@ class ProductViewModel extends ChangeNotifier {
       if (_selectedProduct?.id == productId) {
         // Buscamos el producto actualizado en la lista nueva
         _selectedProduct = _products.firstWhere((p) => p.id == productId);
+        await _loadHistory(productId); // Recargamos el historial
       }
       return true;
+
     } catch (e) {
       _errorMessage = e.toString();
       debugPrint("Error al ajustar stock desde inspector: $_errorMessage");
       return false;
+
     } finally {
       _setLoading(false);
     }
@@ -160,15 +192,14 @@ class ProductViewModel extends ChangeNotifier {
   // Método auxiliar para cargar historial de stock para el producto seleccionado
   Future<void> _loadHistory(int productId) async {
     try {
-      final transactions = await _repository.getStockHistory(productId);
-      _history = transactions;
+      _history = await _repository.getStockHistory(productId);
       notifyListeners();
     } catch (e) {
       debugPrint("Error al cargar historial: $e");
     }
   }
 
-  // método auxiliar para establecer el estado de carga y notificar a los oyentes
+  // Método auxiliar para establecer el estado de carga y notificar a los oyentes
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();

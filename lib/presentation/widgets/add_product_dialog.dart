@@ -2,15 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:file_selector/file_selector.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
 // ViewModels and Entities
 import '../../domain/models/category.dart';
 import '../../domain/models/product.dart';
 import '../viewmodels/category_viewmodel.dart';
 import '../viewmodels/product_viewmodel.dart';
+import '../../infrastructure/services/image_picker_service.dart';
 
 class AddProductDialog extends StatefulWidget {
   const AddProductDialog({super.key});
@@ -42,50 +40,16 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
   // Lógica para seleccionar imagen en macOS y guardarla en la carpeta de la App
   Future<void> _pickImage() async {
-    final XTypeGroup typeGroup = XTypeGroup(
-      label: 'images',
-      extensions: <String>['jpg', 'png', 'jpeg'],
-      uniformTypeIdentifiers: <String>['public.jpg', 'public.png', 'public.jpeg'],
-    );
-    // Abre ventana nativa de macOS
-    final XFile? file = await openFile(
-      acceptedTypeGroups: <XTypeGroup>[typeGroup]
-    );
-    
-    if (file == null) {
-      return;
-    } else {
-      try {
-        // Copiamos la imagen a la carpeta de la aplicación para tener control sobre ella
-        final appDir = await getApplicationDocumentsDirectory();
-        // Definimos nuestra carpeta específica "product_images"
-        final String folderPath = path.join(appDir.path, 'product_images');
-        // Creamos la carpeta si no existe (esto asegura que siempre haya destino)
-        final Directory folderDir = Directory(folderPath);
-        if (!await folderDir.exists()) {
-          await folderDir.create(recursive: true);
-        }
-        // Obtenemos el nombre original del archivo (ej: "foto.jpg")
-        final String fileName = path.basename(file.path);
-        // Agregamos un timestamp para evitar que dos fotos con el mismo nombre se reemplacen
-        final String uniqueName = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
-        // Definimos la ruta completa donde se guardará la imagen
-        final String savedImagePath = path.join(folderPath, uniqueName);
-        
-        await file.saveTo(savedImagePath);
+    // 1. Llamamos al servicio reutilizable
+    final newPath = await ImagePickerService.selectAndSaveImage();
 
-        if (!mounted) return; // Evita errores si el diálogo se cerró
-        setState(() {
-          _imagePath = savedImagePath;
-        });
-      } catch (e) {
-        debugPrint('Error al guardar la imagen: $e');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No se pudo guardar la imagen seleccionada')),
-          );
-        }
-      }
+    // 2. Si hay resultado, actualizamos el estado visual del diálogo
+    if (newPath != null && mounted) {
+      setState(() {
+        _imagePath = newPath;
+      });
+    } else if (newPath == null && mounted) {
+       // Opcional: Manejar cancelación o error silencioso
     }
   }
 

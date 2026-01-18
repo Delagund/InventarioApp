@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/product_viewmodel.dart';
 import '../../domain/models/product.dart';
 
+
 class InspectorPanel extends StatefulWidget {
   const InspectorPanel({super.key});
 
@@ -177,6 +178,55 @@ class _InspectorPanelState extends State<InspectorPanel> {
               ],
             ),
           ),
+
+          // 3. Historial de Stock
+          Text("Historial Reciente", style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+
+          if (productVM.history.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                "No hay movimientos registrados",
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true, // Importante para estar dentro de otro Scroll
+              physics: const NeverScrollableScrollPhysics(), // Evita conflicto de scroll
+              itemCount: productVM.history.length,
+              itemBuilder: (context, index) {
+                final tx = productVM.history[index];
+                final isPos = tx.quantityDelta > 0;
+                
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    isPos ? Icons.arrow_circle_up : Icons.arrow_circle_down,
+                    color: isPos ? Colors.green : Colors.red,
+                  ),
+                  title: Text(tx.reason),
+                  subtitle: Text(
+                    "${tx.date.day}/${tx.date.month} ${tx.date.hour}:${tx.date.minute}",
+                    // DateFormat('dd MMM HH:mm').format(tx.date) + (tx.userName != null ? " • ${tx.userName}" : ""),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  trailing: Text(
+                    "${isPos ? '+' : ''}${tx.quantityDelta}",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isPos ? Colors.green : Colors.red,
+                    ),
+                  ),
+                );
+              },
+            ),
         ],
       ),
     );

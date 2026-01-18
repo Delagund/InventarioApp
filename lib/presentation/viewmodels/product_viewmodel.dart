@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/product.dart';
+import '../../domain/models/stock_transaction.dart';
 import '../../domain/repositories/i_product_repository.dart';
 import '../../domain/usecases/create_product_usecase.dart';
 import '../../domain/models/product_filter.dart';
@@ -14,6 +15,10 @@ class ProductViewModel extends ChangeNotifier {
   List<Product> _products = [];
   bool _isLoading = false;
   String? _errorMessage;
+
+  // Historial de stock del producto seleccionado
+  List<StockTransaction> _history = [];
+  List<StockTransaction> get history => _history;
 
   //Propiedad de producto seleccionado
   Product? _selectedProduct;
@@ -144,7 +149,23 @@ class ProductViewModel extends ChangeNotifier {
   // Método auxiliar para seleccionar un producto
   void selectProduct(Product? product) {
     _selectedProduct = product;
+    _history = []; // Limpiamos el historial al cambiar de producto
     notifyListeners();
+
+    if (product != null) {
+      _loadHistory(product.id!);
+    }
+  }
+
+  // Método auxiliar para cargar historial de stock para el producto seleccionado
+  Future<void> _loadHistory(int productId) async {
+    try {
+      final transactions = await _repository.getStockHistory(productId);
+      _history = transactions;
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error al cargar historial: $e");
+    }
   }
 
   // método auxiliar para establecer el estado de carga y notificar a los oyentes

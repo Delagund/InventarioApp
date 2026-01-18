@@ -3,6 +3,7 @@ import '../../domain/models/product_filter.dart';
 import '../../domain/repositories/i_product_repository.dart';
 import '../database/database_helper.dart';
 import 'package:sqflite/sqflite.dart';
+import '../../domain/models/stock_transaction.dart';
 
 
 
@@ -162,6 +163,31 @@ class SQLiteProductRepository implements IProductRepository {
         'user_name': user,
         'date': DateTime.now().toIso8601String(),
       });
+    });
+  }
+
+  // Obtener el historial de stock para un producto específico
+  @override
+  Future<List<StockTransaction>> getStockHistory(int productId) async {
+    final db = await _dbHelper.database;
+    
+    final List<Map<String, dynamic>> maps = await db.query(
+      'stock_history',
+      where: 'product_id = ?',
+      whereArgs: [productId],
+      orderBy: 'date DESC', // Ordenar del más reciente al más antiguo
+      limit: 5,             // LIMITACIÓN de los últimos 5 registros
+    );
+
+    return List.generate(maps.length, (i) {
+      return StockTransaction(
+        id: maps[i]['id'],
+        productId: maps[i]['product_id'],
+        quantityDelta: maps[i]['quantity_delta'],
+        reason: maps[i]['reason'],
+        date: DateTime.parse(maps[i]['date']),
+        userName: maps[i]['user_name'],
+      );
     });
   }
 }

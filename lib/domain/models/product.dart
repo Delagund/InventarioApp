@@ -1,8 +1,10 @@
 import '../../domain/models/category.dart';
 
+/// Entidad de dominio pura que representa un producto.
+/// No contiene lógica de persistencia (SQLite, JSON, etc).
 class Product {
-  final int? id;         // El ID que genera SQLite
-  final String sku;      // Tu código interno
+  final int? id; // El ID que genera SQLite
+  final String sku; // Tu código interno
   final String name;
   final String? barcode;
   final int quantity;
@@ -23,34 +25,6 @@ class Product {
     this.categories = const [], // Por defecto, una lista vacía
   });
 
-  // Convierte un Producto en un Mapa para guardarlo en SQLite
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'sku': sku,
-      'name': name,
-      'barcode': barcode,
-      'quantity': quantity,
-      'description': description,
-      'image_path': imagePath,
-      'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
-    };
-  }
-
-  // Crea un Producto a partir de un Mapa (cuando lo lees de SQLite)
-  factory Product.fromMap(Map<String, dynamic> map, {List<Category> categories = const []}) {
-    return Product(
-      id: map['id'],
-      sku: map['sku'],
-      name: map['name'],
-      barcode: map['barcode'],
-      quantity: map['quantity'] ?? 0,
-      description: map['description'],
-      imagePath: map['image_path'],
-      createdAt: map['created_at'] != null 
-          ? DateTime.parse(map['created_at']) 
-          : null,
-      categories: categories,
-    );
-  }
+  // La clase es ahora una entidad pura de dominio.
+  // El mapeo a persistencia se delegó a ProductModel en la capa de infraestructura.
 }

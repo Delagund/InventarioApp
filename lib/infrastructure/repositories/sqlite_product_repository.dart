@@ -1,6 +1,7 @@
 import '../../domain/models/product.dart';
 import '../../domain/models/product_filter.dart';
 import '../../domain/models/stock_transaction.dart';
+import '../models/product_model.dart';
 import '../../domain/repositories/i_product_repository.dart';
 import '../../domain/models/stock_adjustment_reason.dart';
 import '../database/database_helper.dart';
@@ -60,9 +61,9 @@ class SQLiteProductRepository implements IProductRepository {
         orderBy: orderBy,
       );
 
-      // 4. Mapear a Objetos
+      // 4. Mapear a Objetos usando ProductModel
       return List.generate(maps.length, (i) {
-        return Product.fromMap(maps[i]);
+        return ProductModel.fromMap(maps[i]).toEntity();
       });
     } catch (e) {
       throw AppDatabaseException("Error al consultar productos: $e");
@@ -79,7 +80,7 @@ class SQLiteProductRepository implements IProductRepository {
         productId = product.id!;
         await db.update(
           SchemaConstants.tableProducts,
-          product.toMap(),
+          ProductModel.fromEntity(product).toMap(),
           where: '${SchemaConstants.columnProductId} = ?',
           whereArgs: [productId],
         );
@@ -91,7 +92,7 @@ class SQLiteProductRepository implements IProductRepository {
       } else {
         productId = await db.insert(
           SchemaConstants.tableProducts,
-          product.toMap(),
+          ProductModel.fromEntity(product).toMap(),
           conflictAlgorithm: ConflictAlgorithm.ignore,
         );
       }
@@ -134,7 +135,7 @@ class SQLiteProductRepository implements IProductRepository {
       );
 
       return List.generate(maps.length, (i) {
-        return Product.fromMap(maps[i]);
+        return ProductModel.fromMap(maps[i]).toEntity();
       });
     } catch (e) {
       throw AppDatabaseException("Error al buscar productos: $e");

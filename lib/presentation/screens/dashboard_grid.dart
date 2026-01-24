@@ -4,8 +4,8 @@ import '../viewmodels/category_viewmodel.dart';
 import '../viewmodels/product_viewmodel.dart';
 import '../widgets/product_card.dart';
 import '../widgets/add_product_dialog.dart';
-import '../../domain/models/product_filter.dart';
 import '../../core/constants/app_strings.dart';
+import '../widgets/common/error_view.dart';
 
 class DashboardGrid extends StatefulWidget {
   const DashboardGrid({super.key});
@@ -87,11 +87,7 @@ class _DashboardGridState extends State<DashboardGrid> {
   void _onCategoryChanged() {
     if (!mounted) return;
     final selectedCategory = context.read<CategoryViewModel>().selectedCategory;
-    context.read<ProductViewModel>().loadProducts(
-      filter: selectedCategory != null
-          ? ProductFilter(categoryId: selectedCategory.id)
-          : ProductFilter(),
-    );
+    context.read<ProductViewModel>().filterByCategory(selectedCategory?.id);
   }
 
   @override
@@ -191,6 +187,11 @@ class _DashboardGridState extends State<DashboardGrid> {
         Expanded(
           child: productVM.isLoading
               ? const Center(child: CircularProgressIndicator())
+              : productVM.errorMessage != null
+              ? ErrorView(
+                  message: productVM.errorMessage!,
+                  onRetry: () => _onCategoryChanged(),
+                )
               : productVM.products.isEmpty
               ? Center(
                   child: Column(

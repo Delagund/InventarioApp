@@ -4,11 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 // Importa el contenedor de inyección
-import 'injection_container.dart' as di; 
+import 'injection_container.dart' as di;
 
 import 'presentation/viewmodels/product_viewmodel.dart';
 import 'presentation/viewmodels/category_viewmodel.dart';
 import 'presentation/screens/main_layout.dart';
+import 'core/theme/app_theme.dart';
 
 void main() async {
   // Aseguramos que los widgets estén vinculados antes de inicializar cosas async
@@ -35,21 +36,13 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         // Inyectamos los ViewModels usando GetIt
-        ChangeNotifierProvider(
-          create: (_) => di.getIt<ProductViewModel>(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => di.getIt<CategoryViewModel>(),
-        ),
+        ChangeNotifierProvider(create: (_) => di.getIt<ProductViewModel>()),
+        ChangeNotifierProvider(create: (_) => di.getIt<CategoryViewModel>()),
       ],
       child: MaterialApp(
         title: 'Inventory_App',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
+        theme: AppTheme.lightTheme,
         home: const MainLayout(),
       ),
     );

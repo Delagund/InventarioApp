@@ -3,6 +3,7 @@ import '../../domain/models/category.dart';
 import '../../domain/repositories/i_category_repository.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/exceptions/app_exceptions.dart';
+import '../../core/services/logging_service.dart';
 
 class CategoryViewModel extends ChangeNotifier {
   final ICategoryRepository _repository;
@@ -35,10 +36,10 @@ class CategoryViewModel extends ChangeNotifier {
       _categories = await _repository.getAllCategories();
     } on AppException catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } catch (e) {
       _errorMessage = AppStrings.errorCargarCategorias;
-      debugPrint("$_errorMessage: $e");
+      LoggingService.error("Error loading categories", e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -62,10 +63,10 @@ class CategoryViewModel extends ChangeNotifier {
       await loadCategories();
     } on AppException catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } catch (e) {
       _errorMessage = "${AppStrings.errorCargarCategorias}: $e";
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -85,7 +86,7 @@ class CategoryViewModel extends ChangeNotifier {
       await loadCategories();
     } on AppException catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } catch (e) {
       _errorMessage = "${AppStrings.errorEliminarCategoria}: $e";
       debugPrint(_errorMessage);

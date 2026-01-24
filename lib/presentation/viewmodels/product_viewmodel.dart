@@ -8,6 +8,7 @@ import '../../domain/usecases/adjust_stock_usecase.dart';
 import '../../domain/models/stock_adjustment_reason.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/exceptions/app_exceptions.dart';
+import '../../core/services/logging_service.dart';
 
 class ProductViewModel extends ChangeNotifier {
   final CreateProductUseCase _createProductUseCase;
@@ -61,6 +62,10 @@ class ProductViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> filterByCategory(int? categoryId) async {
+    await loadProducts(filter: ProductFilter(categoryId: categoryId));
+  }
+
   Future<void> loadProducts({ProductFilter? filter}) async {
     _setLoading(true);
     _errorMessage = null;
@@ -71,10 +76,10 @@ class ProductViewModel extends ChangeNotifier {
       );
     } on AppException catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } catch (e) {
       _errorMessage = "${AppStrings.errorCargarProductos}: $e";
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } finally {
       _setLoading(false);
     }
@@ -91,11 +96,11 @@ class ProductViewModel extends ChangeNotifier {
       return true;
     } on AppException catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
       return false;
     } catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
       return false;
     } finally {
       _setLoading(false);
@@ -113,10 +118,10 @@ class ProductViewModel extends ChangeNotifier {
       await loadProducts();
     } on AppException catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } catch (e) {
       _errorMessage = "${AppStrings.errorEliminarProducto}: $e";
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } finally {
       _setLoading(false);
     }
@@ -133,10 +138,10 @@ class ProductViewModel extends ChangeNotifier {
       await loadProducts();
     } on AppException catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } catch (e) {
       _errorMessage = "${AppStrings.errorEliminarProducto}: $e";
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
     } finally {
       _setLoading(false);
     }
@@ -158,11 +163,11 @@ class ProductViewModel extends ChangeNotifier {
       return true;
     } on AppException catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
       return false;
     } catch (e) {
       _errorMessage = e.toString();
-      debugPrint(_errorMessage);
+      LoggingService.error(_errorMessage!);
       return false;
     } finally {
       _setLoading(false);
@@ -224,7 +229,7 @@ class ProductViewModel extends ChangeNotifier {
       _history = await _repository.getStockHistory(_selectedProduct!.id!);
       notifyListeners();
     } catch (e) {
-      debugPrint("Error loading history: $e");
+      LoggingService.error("Error loading history", e);
     }
   }
 

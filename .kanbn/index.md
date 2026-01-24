@@ -11,10 +11,6 @@ completedColumns:
 
 ## Todo
 
-- [lógica-de-estado-de-inspector-visual](tasks/lógica-de-estado-de-inspector-visual.md)
-- [interfaz-de-usuario-de-inspector-visual](tasks/interfaz-de-usuario-de-inspector-visual.md)
-- [integración-dashboard-del-inspector](tasks/integración-dashboard-del-inspector.md)
-
 ## In Progress
 
 ## Done
@@ -30,3 +26,6 @@ completedColumns:
 - [infrastructure-database-helper](tasks/infrastructure-database-helper.md)
 - [funcionalidad-crear-producto](tasks/funcionalidad-crear-producto.md)
 - [domain-definir-entidad-category](tasks/domain-definir-entidad-category.md)
+- [lógica-de-estado-de-inspector-visual](tasks/lógica-de-estado-de-inspector-visual.md)
+- [integración-dashboard-del-inspector](tasks/integración-dashboard-del-inspector.md)
+- [interfaz-de-usuario-de-inspector-visual](tasks/interfaz-de-usuario-de-inspector-visual.md)

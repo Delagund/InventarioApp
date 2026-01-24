@@ -1,9 +1,10 @@
 ---
 created: 2026-01-18T15:46:40.682Z
-updated: 2026-01-18T15:46:40.677Z
+updated: 2026-01-24T19:43:14.533Z
 assigned: me
-progress: 0
+progress: 1
 tags: []
+completed: 2026-01-24T19:43:14.533Z
 ---
 
 # Interfaz de Usuario de Inspector visual
@@ -16,8 +17,8 @@ tags: []
 
 ## Sub-tasks
 
-- [ ] [UI] Crear InspectorPanel
-- [ ] [UI] Estado "Empty"
-- [ ] [UI] Header de Detalle
-- [ ] [UI] Chips de Categoría
-- [ ] [UI] Widget StockStepper (Visual)
+- [x] [UI] Crear InspectorPanel
+- [x] [UI] Estado "Empty"
+- [x] [UI] Header de Detalle
+- [x] [UI] Chips de Categoría
+- [x] [UI] Widget StockStepper (Visual)

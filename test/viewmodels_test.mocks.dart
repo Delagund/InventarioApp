@@ -7,8 +7,14 @@ import 'dart:async' as _i3;
 
 import 'package:inventory_app/domain/models/product.dart' as _i4;
 import 'package:inventory_app/domain/models/product_filter.dart' as _i5;
+import 'package:inventory_app/domain/models/stock_adjustment_reason.dart'
+    as _i6;
+import 'package:inventory_app/domain/models/stock_transaction.dart' as _i7;
 import 'package:inventory_app/domain/repositories/i_product_repository.dart'
     as _i2;
+import 'package:inventory_app/domain/usecases/adjust_stock_usecase.dart' as _i9;
+import 'package:inventory_app/domain/usecases/create_product_usecase.dart'
+    as _i8;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -89,6 +95,78 @@ class MockIProductRepository extends _i1.Mock
               productId,
               categoryId,
             ]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> updateStock(
+    int? productId,
+    int? quantityDelta,
+    _i6.StockAdjustmentReason? reason, {
+    String? user,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #updateStock,
+              [productId, quantityDelta, reason],
+              {#user: user},
+            ),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<List<_i7.StockTransaction>> getStockHistory(int? productId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getStockHistory, [productId]),
+            returnValue: _i3.Future<List<_i7.StockTransaction>>.value(
+              <_i7.StockTransaction>[],
+            ),
+            returnValueForMissingStub:
+                _i3.Future<List<_i7.StockTransaction>>.value(
+                  <_i7.StockTransaction>[],
+                ),
+          )
+          as _i3.Future<List<_i7.StockTransaction>>);
+}
+
+/// A class which mocks [CreateProductUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCreateProductUseCase extends _i1.Mock
+    implements _i8.CreateProductUseCase {
+  @override
+  _i3.Future<void> execute(_i4.Product? product) =>
+      (super.noSuchMethod(
+            Invocation.method(#execute, [product]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+}
+
+/// A class which mocks [AdjustStockUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockAdjustStockUseCase extends _i1.Mock
+    implements _i9.AdjustStockUseCase {
+  @override
+  _i3.Future<void> execute({
+    required int? productId,
+    required int? quantityDelta,
+    required _i6.StockAdjustmentReason? reason,
+    String? user = 'Local_user',
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#execute, [], {
+              #productId: productId,
+              #quantityDelta: quantityDelta,
+              #reason: reason,
+              #user: user,
+            }),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )

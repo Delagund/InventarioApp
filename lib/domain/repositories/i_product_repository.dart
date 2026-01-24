@@ -1,11 +1,11 @@
 import '../models/product.dart';
 import '../models/stock_transaction.dart';
 import '../models/product_filter.dart';
+import '../models/stock_adjustment_reason.dart';
 
 /// Definimos la interfaz como una clase abstracta.
 
 abstract class IProductRepository {
-  
   // Obtener productos con filtros dinámicos.
   Future<List<Product>> getProducts({required ProductFilter filter});
 
@@ -25,7 +25,12 @@ abstract class IProductRepository {
   Future<void> removeCategoryFromProduct(int productId, int categoryId);
 
   // Actualizar el stock de un producto
-  Future<void> updateStock(int productId, int quantityDelta, String reason, {String user});
+  Future<void> updateStock(
+    int productId,
+    int quantityDelta,
+    StockAdjustmentReason reason, {
+    String user,
+  });
 
   Future<List<StockTransaction>> getStockHistory(int productId);
 }

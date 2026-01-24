@@ -1,33 +1,44 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/category.dart';
 import '../../domain/repositories/i_category_repository.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/exceptions/app_exceptions.dart';
 
 class CategoryViewModel extends ChangeNotifier {
-  final CategoryRepository _repository;
+  final ICategoryRepository _repository;
 
   // Estado
   List<Category> _categories = [];
-  Category? _selectedCategory; // Null representa "Todos los productos" o "General"
+  Category?
+  _selectedCategory; // Null representa "Todos los productos" o "General"
   bool _isLoading = false;
+  String? _errorMessage;
 
   // Getters
   List<Category> get categories => _categories;
   Category? get selectedCategory => _selectedCategory;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  CategoryViewModel({required CategoryRepository repository}) : _repository = repository {
+  CategoryViewModel({required ICategoryRepository repository})
+    : _repository = repository {
     loadCategories();
   }
 
   Future<void> loadCategories() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
       // Aquí se invoca al repositorio que ya calcula el productCount mediante JOIN
-      _categories = await _repository.getAllCategories(); 
+      _categories = await _repository.getAllCategories();
+    } on AppException catch (e) {
+      _errorMessage = e.toString();
+      debugPrint(_errorMessage);
     } catch (e) {
-      debugPrint("Error cargando categorías: $e");
+      _errorMessage = AppStrings.errorCargarCategorias;
+      debugPrint("$_errorMessage: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -41,17 +52,46 @@ class CategoryViewModel extends ChangeNotifier {
   }
 
   Future<void> addCategory(String name, String? description) async {
-    final newCategory = Category(name: name, description: description);
-    await _repository.createCategory(newCategory);
-    await loadCategories(); // Recargamos para actualizar la lista y los conteos
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final newCategory = Category(name: name, description: description);
+      await _repository.createCategory(newCategory);
+      await loadCategories();
+    } on AppException catch (e) {
+      _errorMessage = e.toString();
+      debugPrint(_errorMessage);
+    } catch (e) {
+      _errorMessage = "${AppStrings.errorCargarCategorias}: $e";
+      debugPrint(_errorMessage);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> deleteCategory(int id) async {
-    await _repository.deleteCategory(id);
-    // Si la categoría eliminada estaba seleccionada, deseleccionamos
-    if (_selectedCategory?.id == id) {
-      _selectedCategory = null;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.deleteCategory(id);
+      if (_selectedCategory?.id == id) {
+        _selectedCategory = null;
+      }
+      await loadCategories();
+    } on AppException catch (e) {
+      _errorMessage = e.toString();
+      debugPrint(_errorMessage);
+    } catch (e) {
+      _errorMessage = "${AppStrings.errorEliminarCategoria}: $e";
+      debugPrint(_errorMessage);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    await loadCategories();
   }
 }

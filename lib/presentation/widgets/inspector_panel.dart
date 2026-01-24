@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
-import '../viewmodels/product_viewmodel.dart';
 import '../../domain/models/product.dart';
+import '../../domain/models/stock_adjustment_reason.dart';
+import '../../presentation/viewmodels/product_viewmodel.dart';
 import '../../infrastructure/services/image_picker_service.dart';
-
+import 'dialogs/edit_name_dialog.dart';
+import 'inputs/stock_stepper.dart';
 
 class InspectorPanel extends StatefulWidget {
   const InspectorPanel({super.key});
@@ -56,12 +56,14 @@ class _InspectorPanelState extends State<InspectorPanel> {
     FocusScope.of(context).unfocus(); // Cerramos teclado
 
     final vm = context.read<ProductViewModel>();
-    
-    // Llamamos al método que calcula la diferencia e inserta el registro
+
+    // Calculamos el delta
+    final delta = _localStock - product.quantity;
+
+    // Llamamos al método con el delta y razón (por defecto Manual)
     final success = await vm.adjustStockFromInspector(
-      product.id!, 
-      product.quantity, // Cantidad original (DB)
-      _localStock       // Cantidad deseada (UI)
+      delta,
+      StockAdjustmentReason.manualAdjustment,
     );
 
     if (success && context.mounted) {
@@ -78,69 +80,27 @@ class _InspectorPanelState extends State<InspectorPanel> {
 
     if (newPath != null && context.mounted) {
       final productVM = context.read<ProductViewModel>();
-      
-      // Creamos el producto actualizado
-      final updatedProduct = Product(
-        id: product.id,
-        sku: product.sku,
-        name: product.name,
-        barcode: product.barcode,
-        quantity: product.quantity,
-        description: product.description,
-        imagePath: newPath, // Nueva ruta
-        categories: product.categories,
-        createdAt: product.createdAt,
-      );
 
-      await productVM.updateProductDetails(updatedProduct);
-
+      // No necesitamos crear un objeto Product aquí,
+      // el ViewModel se encarga de aplicar el cambio al producto seleccionado.
+      await productVM.updateProductDetails(imagePath: newPath);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Imagen actualizada"))
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Imagen actualizada")));
       }
     }
   }
 
   // 3. Editar Nombre
   void _showEditNameDialog(BuildContext context, Product product) {
-    final nameController = TextEditingController(text: product.name);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Editar Nombre"),
-        content: TextField(
-          controller: nameController,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: "Nombre del producto"),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx), 
-            child: const Text("Cancelar")
-          ),
-          FilledButton(
-            onPressed: () {
-              if (nameController.text.isNotEmpty) {
-                final updated = Product(
-                  id: product.id,
-                  sku: product.sku,
-                  name: nameController.text, // Nuevo nombre
-                  barcode: product.barcode,
-                  quantity: product.quantity,
-                  description: product.description,
-                  imagePath: product.imagePath,
-                  categories: product.categories,
-                  createdAt: product.createdAt,
-                );
-                
-                context.read<ProductViewModel>().updateProductDetails(updated);
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text("Guardar"),
-          )
-        ],
+      builder: (ctx) => EditNameDialog(
+        initialName: product.name,
+        onSave: (newName) {
+          context.read<ProductViewModel>().updateProductDetails(name: newName);
+        },
       ),
     );
   }
@@ -151,24 +111,28 @@ class _InspectorPanelState extends State<InspectorPanel> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text("¿Eliminar Producto?"),
-        content: Text("Estás a punto de eliminar '${product.name}'. Esta acción es irreversible."),
+        content: Text(
+          "Estás a punto de eliminar '${product.name}'. Esta acción es irreversible.",
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx), 
-            child: const Text("Cancelar")
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Cancelar"),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () async {
               Navigator.pop(ctx);
               await context.read<ProductViewModel>().deleteProduct(product.id!);
               // Al eliminar, limpiamos la selección
-              if (context.mounted) context.read<ProductViewModel>().selectProduct(null);
+              if (context.mounted) {
+                context.read<ProductViewModel>().selectProduct(null);
+              }
             },
             child: const Text("Eliminar"),
-          )
+          ),
         ],
       ),
     );
@@ -182,14 +146,23 @@ class _InspectorPanelState extends State<InspectorPanel> {
 
     // Caso sin selección
     if (product == null) {
-      _lastProductId = null; 
+      _lastProductId = null;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 48, color: theme.colorScheme.outline),
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 48,
+              color: theme.colorScheme.outline,
+            ),
             const SizedBox(height: 16),
-            Text("Selecciona un producto", style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.outline)),
+            Text(
+              "Selecciona un producto",
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
           ],
         ),
       );
@@ -216,9 +189,15 @@ class _InspectorPanelState extends State<InspectorPanel> {
               children: [
                 Container(
                   color: theme.colorScheme.surfaceContainerHighest,
-                  child: product.imagePath != null && File(product.imagePath!).existsSync()
+                  child:
+                      product.imagePath != null &&
+                          File(product.imagePath!).existsSync()
                       ? Image.file(File(product.imagePath!), fit: BoxFit.cover)
-                      : Icon(Icons.image_not_supported_outlined, size: 64, color: theme.colorScheme.outline),
+                      : Icon(
+                          Icons.image_not_supported_outlined,
+                          size: 64,
+                          color: theme.colorScheme.outline,
+                        ),
                 ),
                 Positioned(
                   right: 8,
@@ -245,7 +224,7 @@ class _InspectorPanelState extends State<InspectorPanel> {
                   children: [
                     Expanded(
                       child: Text(
-                        product.name, 
+                        product.name,
                         style: theme.textTheme.headlineSmall,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -255,82 +234,48 @@ class _InspectorPanelState extends State<InspectorPanel> {
                       icon: const Icon(Icons.edit_outlined),
                       onPressed: () => _showEditNameDialog(context, product),
                       tooltip: "Renombrar",
-                    )
+                    ),
                   ],
                 ),
                 Text(
-                  "SKU: ${product.sku}", 
+                  "SKU: ${product.sku}",
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.primary,
-                    fontFamily: 'monospace'
-                  )
+                    fontFamily: 'monospace',
+                  ),
                 ),
 
                 const SizedBox(height: 24),
-                
+
                 // --- STEPPER DE STOCK ---
                 Text("Control de Stock", style: theme.textTheme.labelMedium),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(12),
-                    border: hasChanges ? Border.all(color: theme.colorScheme.primary) : null,
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton.filledTonal(
-                            onPressed: () => _updateStockValue(_localStock - 1),
-                            icon: const Icon(Icons.remove),
-                          ),
-                          SizedBox(
-                            width: 80,
-                            child: TextField(
-                              controller: _qtyController,
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.headlineSmall,
-                              decoration: const InputDecoration(border: InputBorder.none),
-                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                              onChanged: (val) {
-                                final n = int.tryParse(val);
-                                if (n != null) setState(() => _localStock = n);
-                              },
-                            ),
-                          ),
-                          IconButton.filledTonal(
-                            onPressed: () => _updateStockValue(_localStock + 1),
-                            icon: const Icon(Icons.add),
-                          ),
-                        ],
-                      ),
-                      if (hasChanges) ...[
-                        const Divider(height: 24),
-                        FilledButton.icon(
-                          onPressed: () => _saveStock(context, product),
-                          icon: const Icon(Icons.save_alt),
-                          label: Text("Guardar cambio (${_localStock - product.quantity > 0 ? '+' : ''}${_localStock - product.quantity})"),
-                        )
-                      ]
-                    ],
-                  ),
+                StockStepper(
+                  currentStock: product.quantity,
+                  controller: _qtyController,
+                  delta: _localStock - product.quantity,
+                  hasChanges: hasChanges,
+                  onUpdate: _updateStockValue,
+                  onSave: () => _saveStock(context, product),
                 ),
+
                 // ------------------------
-                
                 const SizedBox(height: 24),
                 // Chips de categorías (Visualización)
-                if (product.categories != null && product.categories!.isNotEmpty) ...[
+                if (product.categories != null &&
+                    product.categories!.isNotEmpty) ...[
                   Text("Categorías", style: theme.textTheme.labelLarge),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
-                    children: product.categories!.map((c) => Chip(label: Text(c.name),
-                    visualDensity: VisualDensity.compact,
-                    )).toList(),
+                    children: product.categories!
+                        .map(
+                          (c) => Chip(
+                            label: Text(c.name),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        )
+                        .toList(),
                   ),
                   const SizedBox(height: 24),
                 ],
@@ -351,28 +296,40 @@ class _InspectorPanelState extends State<InspectorPanel> {
                     ),
                     child: Text(
                       "No hay movimientos registrados",
-                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
                     ),
                   )
                 else
                   ListView.builder(
-                    shrinkWrap: true, // Importante para estar dentro de otro Scroll
-                    physics: const NeverScrollableScrollPhysics(), // Evita conflicto de scroll
+                    shrinkWrap:
+                        true, // Importante para estar dentro de otro Scroll
+                    physics:
+                        const NeverScrollableScrollPhysics(), // Evita conflicto de scroll
                     padding: EdgeInsets.zero,
                     itemCount: productVM.history.length,
                     itemBuilder: (context, index) {
                       final tx = productVM.history[index];
                       final isPos = tx.quantityDelta > 0;
-                      
+
                       return ListTile(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 0,
+                        ),
                         dense: true,
                         leading: Icon(
-                          isPos ? Icons.arrow_circle_up : Icons.arrow_circle_down,
+                          isPos
+                              ? Icons.arrow_circle_up
+                              : Icons.arrow_circle_down,
                           color: isPos ? Colors.green : Colors.red,
                           size: 20,
                         ),
-                        title: Text(tx.reason, style: theme.textTheme.bodyMedium),
+                        title: Text(
+                          tx.reason,
+                          style: theme.textTheme.bodyMedium,
+                        ),
                         subtitle: Text(
                           "${tx.date.day}/${tx.date.month}/${tx.date.year} ${tx.date.hour}:${tx.date.minute}",
                           // DateFormat('dd MMM HH:mm').format(tx.date) + (tx.userName != null ? " • ${tx.userName}" : ""),
@@ -389,7 +346,7 @@ class _InspectorPanelState extends State<InspectorPanel> {
                     },
                   ),
                 const SizedBox(height: 24),
-                
+
                 // 4. Botón Eliminar Producto
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(

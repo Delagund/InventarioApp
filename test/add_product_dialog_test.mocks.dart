@@ -3,14 +3,17 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
-import 'dart:ui' as _i6;
+import 'dart:async' as _i5;
+import 'dart:ui' as _i8;
 
-import 'package:inventory_app/domain/models/category.dart' as _i8;
+import 'package:inventory_app/domain/models/category.dart' as _i10;
 import 'package:inventory_app/domain/models/product.dart' as _i3;
-import 'package:inventory_app/domain/models/product_filter.dart' as _i5;
-import 'package:inventory_app/presentation/viewmodels/category_viewmodel.dart'
+import 'package:inventory_app/domain/models/product_filter.dart' as _i6;
+import 'package:inventory_app/domain/models/stock_adjustment_reason.dart'
     as _i7;
+import 'package:inventory_app/domain/models/stock_transaction.dart' as _i4;
+import 'package:inventory_app/presentation/viewmodels/category_viewmodel.dart'
+    as _i9;
 import 'package:inventory_app/presentation/viewmodels/product_viewmodel.dart'
     as _i2;
 import 'package:mockito/mockito.dart' as _i1;
@@ -53,6 +56,33 @@ class MockProductViewModel extends _i1.Mock implements _i2.ProductViewModel {
           as bool);
 
   @override
+  Set<int> get selectedProductIds =>
+      (super.noSuchMethod(
+            Invocation.getter(#selectedProductIds),
+            returnValue: <int>{},
+            returnValueForMissingStub: <int>{},
+          )
+          as Set<int>);
+
+  @override
+  bool get isSelectionMode =>
+      (super.noSuchMethod(
+            Invocation.getter(#isSelectionMode),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
+  List<_i4.StockTransaction> get history =>
+      (super.noSuchMethod(
+            Invocation.getter(#history),
+            returnValue: <_i4.StockTransaction>[],
+            returnValueForMissingStub: <_i4.StockTransaction>[],
+          )
+          as List<_i4.StockTransaction>);
+
+  @override
   bool get hasListeners =>
       (super.noSuchMethod(
             Invocation.getter(#hasListeners),
@@ -62,40 +92,128 @@ class MockProductViewModel extends _i1.Mock implements _i2.ProductViewModel {
           as bool);
 
   @override
-  _i4.Future<void> loadProducts({_i5.ProductFilter? filter}) =>
+  void selectProduct(_i3.Product? product) => super.noSuchMethod(
+    Invocation.method(#selectProduct, [product]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void toggleSelection(int? productId) => super.noSuchMethod(
+    Invocation.method(#toggleSelection, [productId]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void toggleProductSelection(int? productId) => super.noSuchMethod(
+    Invocation.method(#toggleProductSelection, [productId]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void toggleSelectionMode() => super.noSuchMethod(
+    Invocation.method(#toggleSelectionMode, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  _i5.Future<void> loadProducts({_i6.ProductFilter? filter}) =>
       (super.noSuchMethod(
             Invocation.method(#loadProducts, [], {#filter: filter}),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<bool> addProduct(_i3.Product? product) =>
+  _i5.Future<bool> addProduct(_i3.Product? product) =>
       (super.noSuchMethod(
             Invocation.method(#addProduct, [product]),
-            returnValue: _i4.Future<bool>.value(false),
-            returnValueForMissingStub: _i4.Future<bool>.value(false),
+            returnValue: _i5.Future<bool>.value(false),
+            returnValueForMissingStub: _i5.Future<bool>.value(false),
           )
-          as _i4.Future<bool>);
+          as _i5.Future<bool>);
 
   @override
-  _i4.Future<void> deleteProduct(int? id) =>
+  _i5.Future<void> deleteProduct(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteProduct, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  void addListener(_i6.VoidCallback? listener) => super.noSuchMethod(
+  _i5.Future<void> deleteSelectedProducts() =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteSelectedProducts, []),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<bool> updateProductStock(
+    int? productId,
+    int? delta,
+    _i7.StockAdjustmentReason? reason,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateProductStock, [productId, delta, reason]),
+            returnValue: _i5.Future<bool>.value(false),
+            returnValueForMissingStub: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
+
+  @override
+  _i5.Future<bool> adjustStockFromInspector(
+    int? delta,
+    _i7.StockAdjustmentReason? reason,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#adjustStockFromInspector, [delta, reason]),
+            returnValue: _i5.Future<bool>.value(false),
+            returnValueForMissingStub: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
+
+  @override
+  _i5.Future<bool> updateProductDetails({
+    String? name,
+    String? sku,
+    String? barcode,
+    String? description,
+    String? imagePath,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateProductDetails, [], {
+              #name: name,
+              #sku: sku,
+              #barcode: barcode,
+              #description: description,
+              #imagePath: imagePath,
+            }),
+            returnValue: _i5.Future<bool>.value(false),
+            returnValueForMissingStub: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
+
+  @override
+  _i5.Future<void> loadHistory() =>
+      (super.noSuchMethod(
+            Invocation.method(#loadHistory, []),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i6.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
@@ -116,15 +234,15 @@ class MockProductViewModel extends _i1.Mock implements _i2.ProductViewModel {
 /// A class which mocks [CategoryViewModel].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCategoryViewModel extends _i1.Mock implements _i7.CategoryViewModel {
+class MockCategoryViewModel extends _i1.Mock implements _i9.CategoryViewModel {
   @override
-  List<_i8.Category> get categories =>
+  List<_i10.Category> get categories =>
       (super.noSuchMethod(
             Invocation.getter(#categories),
-            returnValue: <_i8.Category>[],
-            returnValueForMissingStub: <_i8.Category>[],
+            returnValue: <_i10.Category>[],
+            returnValueForMissingStub: <_i10.Category>[],
           )
-          as List<_i8.Category>);
+          as List<_i10.Category>);
 
   @override
   bool get isLoading =>
@@ -145,46 +263,46 @@ class MockCategoryViewModel extends _i1.Mock implements _i7.CategoryViewModel {
           as bool);
 
   @override
-  _i4.Future<void> loadCategories() =>
+  _i5.Future<void> loadCategories() =>
       (super.noSuchMethod(
             Invocation.method(#loadCategories, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  void selectCategory(_i8.Category? category) => super.noSuchMethod(
+  void selectCategory(_i10.Category? category) => super.noSuchMethod(
     Invocation.method(#selectCategory, [category]),
     returnValueForMissingStub: null,
   );
 
   @override
-  _i4.Future<void> addCategory(String? name, String? description) =>
+  _i5.Future<void> addCategory(String? name, String? description) =>
       (super.noSuchMethod(
             Invocation.method(#addCategory, [name, description]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<void> deleteCategory(int? id) =>
+  _i5.Future<void> deleteCategory(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteCategory, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  void addListener(_i6.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i6.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );

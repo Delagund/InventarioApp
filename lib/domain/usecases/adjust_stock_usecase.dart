@@ -1,4 +1,5 @@
 import '../repositories/i_product_repository.dart';
+import '../models/stock_adjustment_reason.dart';
 
 class AdjustStockUseCase {
   final IProductRepository _repository;
@@ -6,9 +7,9 @@ class AdjustStockUseCase {
   AdjustStockUseCase(this._repository);
 
   Future<void> execute({
-    required int productId, 
-    required int quantityDelta, 
-    required String reason,
+    required int productId,
+    required int quantityDelta,
+    required StockAdjustmentReason reason,
     String user = "Local_user",
   }) async {
     // Validaciones de negocio (opcional)

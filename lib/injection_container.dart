@@ -21,31 +21,28 @@ Future<void> init() async {
   // La UI los pedirá. GetIt inyectará automáticamente los repos/usecases necesarios.
   getIt.registerFactory(
     () => ProductViewModel(
-      repository: getIt(), // Inyección automática del repositorio
-    ),
-  );
-  
-  getIt.registerFactory(
-    () => CategoryViewModel(
+      createProductUseCase: getIt(),
       repository: getIt(),
+      adjustStockUseCase: getIt(),
     ),
   );
+
+  getIt.registerFactory(() => CategoryViewModel(repository: getIt()));
 
   // --- 2. Casos de Uso (Lazy Singleton) ---
   // Solo necesitamos una instancia de la lógica pura.
   getIt.registerLazySingleton(() => CreateProductUseCase(getIt()));
-  
+
   // Si implementaste el AdjustStockUseCase del paso 2, regístralo aquí:
   getIt.registerLazySingleton(() => AdjustStockUseCase(getIt()));
-
 
   // --- 3. Repositorios (Lazy Singleton) ---
   // La implementación concreta (SQLite) se oculta tras la interfaz.
   getIt.registerLazySingleton<IProductRepository>(
     () => SQLiteProductRepository(),
   );
-  
-  getIt.registerLazySingleton<CategoryRepository>(
+
+  getIt.registerLazySingleton<ICategoryRepository>(
     () => SQLiteCategoryRepository(),
   );
 }

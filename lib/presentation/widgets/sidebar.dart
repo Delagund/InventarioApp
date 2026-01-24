@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/category_viewmodel.dart';
 import '../../domain/models/category.dart';
+import '../../core/constants/app_strings.dart';
+import 'inputs/custom_text_field.dart';
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key});
@@ -22,10 +24,13 @@ class Sidebar extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                Icon(Icons.inventory_2_outlined, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.inventory_2_outlined,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
                 Text(
-                  "Inventario",
+                  AppStrings.inventario,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -33,7 +38,7 @@ class Sidebar extends StatelessWidget {
               ],
             ),
           ),
-          
+
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -41,7 +46,7 @@ class Sidebar extends StatelessWidget {
                 // Opción "Todos los productos" (Categoría null)
                 _SidebarItem(
                   icon: Icons.dashboard,
-                  title: "Todos los productos",
+                  title: AppStrings.todosLosProductos,
                   isSelected: categoryVM.selectedCategory == null,
                   onTap: () => categoryVM.selectCategory(null),
                   // Opcional: Podrías sumar todos los productCounts aquí si quisieras
@@ -50,7 +55,7 @@ class Sidebar extends StatelessWidget {
                 const Divider(height: 20),
 
                 Text(
-                  "CATEGORÍAS",
+                  AppStrings.categorias,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -61,15 +66,18 @@ class Sidebar extends StatelessWidget {
                 if (categoryVM.isLoading)
                   const Center(child: CircularProgressIndicator())
                 else
-                  ...categoryVM.categories.map((category) => _SidebarItem(
-                        category: category,
-                        icon: Icons.folder_open,
-                        title: category.name,
-                        // Aquí usamos el productCount calculado por SQLite
-                        count: category.productCount, 
-                        isSelected: categoryVM.selectedCategory?.id == category.id,
-                        onTap: () => categoryVM.selectCategory(category),
-                      )),
+                  ...categoryVM.categories.map(
+                    (category) => _SidebarItem(
+                      category: category,
+                      icon: Icons.folder_open,
+                      title: category.name,
+                      // Aquí usamos el productCount calculado por SQLite
+                      count: category.productCount,
+                      isSelected:
+                          categoryVM.selectedCategory?.id == category.id,
+                      onTap: () => categoryVM.selectCategory(category),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -82,7 +90,7 @@ class Sidebar extends StatelessWidget {
                 _showAddCategoryDialog(context, categoryVM);
               },
               icon: const Icon(Icons.add),
-              label: const Text("Nueva Categoría"),
+              label: const Text(AppStrings.nuevaCategoria),
             ),
           ),
         ],
@@ -95,14 +103,17 @@ class Sidebar extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Nueva Categoría"),
-        content: TextField(
+        title: const Text(AppStrings.nuevaCategoria),
+        content: CustomTextField(
           controller: controller,
-          decoration: const InputDecoration(labelText: "Nombre"),
+          label: AppStrings.nombreCategoria,
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(AppStrings.cancelar),
+          ),
           FilledButton(
             onPressed: () {
               if (controller.text.isNotEmpty) {
@@ -110,8 +121,8 @@ class Sidebar extends StatelessWidget {
                 Navigator.pop(context);
               }
             },
-            child: const Text("Crear"),
-          )
+            child: const Text(AppStrings.crear),
+          ),
         ],
       ),
     );
@@ -138,11 +149,13 @@ class _SidebarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: isSelected ? theme.colorScheme.secondaryContainer : Colors.transparent,
+        color: isSelected
+            ? theme.colorScheme.secondaryContainer
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(
@@ -150,12 +163,16 @@ class _SidebarItem extends StatelessWidget {
         leading: Icon(
           icon,
           size: 20,
-          color: isSelected ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurfaceVariant,
+          color: isSelected
+              ? theme.colorScheme.onSecondaryContainer
+              : theme.colorScheme.onSurfaceVariant,
         ),
         title: Text(
           title,
           style: TextStyle(
-            color: isSelected ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurface,
+            color: isSelected
+                ? theme.colorScheme.onSecondaryContainer
+                : theme.colorScheme.onSurface,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             fontSize: 14,
           ),
@@ -167,7 +184,7 @@ class _SidebarItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isSelected 
+                  color: isSelected
                       ? theme.colorScheme.primary.withValues(alpha: 0.2)
                       : theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
@@ -177,7 +194,9 @@ class _SidebarItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                    color: isSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -185,8 +204,10 @@ class _SidebarItem extends StatelessWidget {
             if (category != null)
               IconButton(
                 icon: const Icon(Icons.close, size: 16),
-                tooltip: "Eliminar categoría",
-                onPressed: () => context.read<CategoryViewModel>().deleteCategory(category!.id!),
+                tooltip: AppStrings.eliminarCategoria,
+                onPressed: () => context
+                    .read<CategoryViewModel>()
+                    .deleteCategory(category!.id!),
               ),
           ],
         ),

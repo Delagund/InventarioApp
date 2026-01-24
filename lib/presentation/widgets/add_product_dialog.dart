@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'inputs/custom_text_field.dart';
 
 // ViewModels and Entities
 import '../../domain/models/category.dart';
@@ -9,6 +10,7 @@ import '../../domain/models/product.dart';
 import '../viewmodels/category_viewmodel.dart';
 import '../viewmodels/product_viewmodel.dart';
 import '../../infrastructure/services/image_picker_service.dart';
+import '../../core/constants/app_strings.dart';
 
 class AddProductDialog extends StatefulWidget {
   const AddProductDialog({super.key});
@@ -19,12 +21,12 @@ class AddProductDialog extends StatefulWidget {
 
 class _AddProductDialogState extends State<AddProductDialog> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Controladores para capturar el texto
   final _nameController = TextEditingController();
   final _skuController = TextEditingController();
   final _stockController = TextEditingController();
-  
+
   // Estado local para selecciones
   final Set<int> _selectedCategoryIds = {};
   String? _imagePath;
@@ -49,7 +51,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
         _imagePath = newPath;
       });
     } else if (newPath == null && mounted) {
-       // Opcional: Manejar cancelación o error silencioso
+      // Opcional: Manejar cancelación o error silencioso
     }
   }
 
@@ -59,14 +61,21 @@ class _AddProductDialogState extends State<AddProductDialog> {
       // 1. Validar lógica extra (ej. categoría obligatoria)
       if (_selectedCategoryIds.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor selecciona al menos una categoría')),
+          const SnackBar(
+            content: Text('Por favor selecciona al menos una categoría'),
+          ),
         );
         return;
       }
 
-      if (_stockController.text.isEmpty || int.parse(_stockController.text) < 0) {
+      if (_stockController.text.isEmpty ||
+          int.parse(_stockController.text) < 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('El stock inicial no puede estar vacío o ser negativo')),
+          const SnackBar(
+            content: Text(
+              'El stock inicial no puede estar vacío o ser negativo',
+            ),
+          ),
         );
         return;
       }
@@ -77,12 +86,13 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
       // Obtenemos la lista de objetos Category basada en los IDs seleccionados
       final selectedCategories = categoryVM.categories
-          .where((c) => _selectedCategoryIds.contains(c.id)).toList();
+          .where((c) => _selectedCategoryIds.contains(c.id))
+          .toList();
 
       // 2. Crear el objeto Producto (Dominio)
       // Nota: Asumimos ID 0 o null si es autoincremental en DB
       final newProduct = Product(
-        id: null, 
+        id: null,
         sku: _skuController.text,
         name: _nameController.text,
         barcode: null, // Puede ser null
@@ -102,8 +112,8 @@ class _AddProductDialogState extends State<AddProductDialog> {
       if (success) {
         // --- CASO ÉXITO ---
         // Actualizamos conteos de categorías si es necesario
-        await categoryVM.loadCategories(); 
-        
+        await categoryVM.loadCategories();
+
         if (mounted) {
           Navigator.of(context).pop(); // Cerramos el diálogo
           ScaffoldMessenger.of(context).showSnackBar(
@@ -113,8 +123,9 @@ class _AddProductDialogState extends State<AddProductDialog> {
       } else {
         // --- CASO ERROR (Validación de Negocio) ---
         // No cerramos el diálogo. Mostramos el error que capturó el ViewModel.
-        final String errorMsg = productVM.errorMessage ?? 'Error desconocido al guardar';
-        
+        final String errorMsg =
+            productVM.errorMessage ?? 'Error desconocido al guardar';
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMsg),
@@ -132,7 +143,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
     final categories = context.watch<CategoryViewModel>().categories;
 
     return AlertDialog(
-      title: const Text('Nuevo Producto'),
+      title: const Text(AppStrings.nuevoProducto),
       content: SizedBox(
         width: 400, // Ancho fijo cómodo para Desktop
         child: SingleChildScrollView(
@@ -161,44 +172,55 @@ class _AddProductDialogState extends State<AddProductDialog> {
                               // Esto muestra un icono si no se puede leer la imagen (por permisos o ruta inválida)
                               errorBuilder: (context, error, stackTrace) {
                                 return const Center(
-                                  child: Icon(Icons.broken_image, color: Colors.red),
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    color: Colors.red,
+                                  ),
                                 );
                               },
                             ),
                           )
-                        : const Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
+                        : const Icon(
+                            Icons.add_a_photo,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
                   ),
                 ),
                 const SizedBox(height: 16),
 
                 // --- CAMPOS DE TEXTO ---
-                TextFormField(
+                CustomTextField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Nombre del Producto'),
-                  validator: (value) => value!.isEmpty ? 'Requerido' : null,
+                  label: AppStrings.nombreProducto,
+                  validator: (value) =>
+                      value!.isEmpty ? AppStrings.errorRequerido : null,
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
+                      child: CustomTextField(
                         controller: _skuController,
-                        decoration: const InputDecoration(labelText: 'SKU'),
-                        validator: (value) => value!.isEmpty ? 'Requerido' : null,
+                        label: AppStrings.sku,
+                        validator: (value) =>
+                            value!.isEmpty ? AppStrings.errorRequerido : null,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextFormField(
+                      child: CustomTextField(
                         controller: _stockController,
-                        decoration: const InputDecoration(labelText: 'Stock Inicial'),
+                        label: AppStrings.stockInicial,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Requerido';
-                          if (int.tryParse(value) == null) return 'Debe ser número';
+                          if (value == null || value.isEmpty)
+                            return AppStrings.errorRequerido;
+                          if (int.tryParse(value) == null)
+                            return AppStrings.errorNumero;
                           return null;
                         },
                       ),
@@ -210,9 +232,12 @@ class _AddProductDialogState extends State<AddProductDialog> {
                 // --- SELECCIÓN MÚLTIPLE DE CATEGORÍAS ---
                 InputDecorator(
                   decoration: const InputDecoration(
-                    labelText: 'Categorías',
+                    labelText: AppStrings.categoriasLabel,
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                   child: Wrap(
                     spacing: 8.0,
@@ -222,7 +247,9 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         selected: _selectedCategoryIds.contains(cat.id),
                         onSelected: (bool selected) {
                           setState(() {
-                            selected ? _selectedCategoryIds.add(cat.id!) : _selectedCategoryIds.remove(cat.id);
+                            selected
+                                ? _selectedCategoryIds.add(cat.id!)
+                                : _selectedCategoryIds.remove(cat.id);
                           });
                         },
                       );
@@ -237,11 +264,11 @@ class _AddProductDialogState extends State<AddProductDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: const Text(AppStrings.cancelar),
         ),
         FilledButton(
           onPressed: _submit,
-          child: const Text('Guardar Producto'),
+          child: const Text(AppStrings.guardarProducto),
         ),
       ],
     );

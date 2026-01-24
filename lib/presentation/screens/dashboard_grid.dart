@@ -5,6 +5,7 @@ import '../viewmodels/product_viewmodel.dart';
 import '../widgets/product_card.dart';
 import '../widgets/add_product_dialog.dart';
 import '../../domain/models/product_filter.dart';
+import '../../core/constants/app_strings.dart';
 
 class DashboardGrid extends StatefulWidget {
   const DashboardGrid({super.key});
@@ -14,39 +15,27 @@ class DashboardGrid extends StatefulWidget {
 }
 
 class _DashboardGridState extends State<DashboardGrid> {
-  // Estado para el modo de selección
-  bool _isSelectionMode = false;
-  final Set<int> _selectedProductIds = {};
-
-  void _toggleSelectionMode() {
-    setState(() {
-      _isSelectionMode = !_isSelectionMode;
-      _selectedProductIds.clear();
-    });
-  }
-
-  void _toggleProductSelection(int productId) {
-    setState(() {
-      if (_selectedProductIds.contains(productId)) {
-        _selectedProductIds.remove(productId);
-      } else {
-        _selectedProductIds.add(productId);
-      }
-    });
-  }
+  // Estado local para el modo de selección (AHORA EN VIEWMODEL)
 
   Future<void> _deleteSelectedProducts() async {
-    if (_selectedProductIds.isEmpty) return;
+    final productVM = context.read<ProductViewModel>();
+    if (productVM.selectedProductIds.isEmpty) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar productos'),
-        content: Text('¿Estás seguro de que deseas eliminar ${_selectedProductIds.length} productos? Esta acción no se puede deshacer.'),
+        title: const Text(
+          AppStrings.eliminarProductos,
+        ), // Replaced hardcoded string
+        content: Text(
+          AppStrings.confirmarEliminarProductos(
+            productVM.selectedProductIds.length,
+          ), // Replaced hardcoded string
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
+            child: const Text(AppStrings.cancelar), // Replaced hardcoded string
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -54,30 +43,23 @@ class _DashboardGridState extends State<DashboardGrid> {
               foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Eliminar'),
+            child: const Text(AppStrings.eliminar), // Replaced hardcoded string
           ),
         ],
       ),
     );
 
     if (confirmed == true && mounted) {
-      final productVM = context.read<ProductViewModel>();
-      // Copiamos la lista para iterar
-      final idsToDelete = List<int>.from(_selectedProductIds);
-      
-      for (final id in idsToDelete) {
-        await productVM.deleteProduct(id);
-      }
-      
+      final count = productVM.selectedProductIds.length;
+      await productVM.deleteSelectedProducts();
+
       // Actualizar los contadores del Sidebar
       if (mounted) context.read<CategoryViewModel>().loadCategories();
 
-      _toggleSelectionMode();
-      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${idsToDelete.length} productos eliminados')),
-        );
+          SnackBar(content: Text(AppStrings.productosEliminados(count))),
+        ); // Replaced hardcoded string
       }
     }
   }
@@ -88,7 +70,7 @@ class _DashboardGridState extends State<DashboardGrid> {
     // Suscribirse a cambios en la categoría
     final categoryVM = context.read<CategoryViewModel>();
     categoryVM.addListener(_onCategoryChanged);
-    
+
     // Carga inicial (post frame para evitar errores de construcción)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _onCategoryChanged();
@@ -106,8 +88,8 @@ class _DashboardGridState extends State<DashboardGrid> {
     if (!mounted) return;
     final selectedCategory = context.read<CategoryViewModel>().selectedCategory;
     context.read<ProductViewModel>().loadProducts(
-      filter: selectedCategory != null 
-          ? ProductFilter(categoryId: selectedCategory.id) 
+      filter: selectedCategory != null
+          ? ProductFilter(categoryId: selectedCategory.id)
           : ProductFilter(),
     );
   }
@@ -119,7 +101,8 @@ class _DashboardGridState extends State<DashboardGrid> {
     final theme = Theme.of(context);
 
     // Encabezado dinámico
-    final title = categoryVM.selectedCategory?.name ?? "Todos los productos";
+    final title =
+        categoryVM.selectedCategory?.name ?? AppStrings.todosLosProductos;
 
     return Column(
       children: [
@@ -131,67 +114,76 @@ class _DashboardGridState extends State<DashboardGrid> {
             color: theme.colorScheme.surface,
           ),
           child: Row(
-            children: _isSelectionMode 
-              ? [
-                  IconButton(
-                    onPressed: _toggleSelectionMode, 
-                    icon: const Icon(Icons.close),
-                    tooltip: "Cancelar selección",
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      "${_selectedProductIds.length} seleccionados",
-                      style: theme.textTheme.titleMedium,
-                      overflow: TextOverflow.ellipsis,
+            children: productVM.isSelectionMode
+                ? [
+                    IconButton(
+                      onPressed: () => productVM.toggleSelectionMode(),
+                      icon: const Icon(Icons.close),
+                      tooltip: AppStrings
+                          .cancelarSeleccion, // Replaced hardcoded string
                     ),
-                  ),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: theme.colorScheme.error,
-                      foregroundColor: theme.colorScheme.onError,
-                    ),
-                    onPressed: _selectedProductIds.isEmpty ? null : _deleteSelectedProducts,
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text("Eliminar"),
-                  ),
-                ]
-              : [
-                  // Usamos Expanded para que el texto ocupe el espacio disponible y empuje los botones
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: theme.textTheme.headlineSmall,
-                      overflow: TextOverflow.ellipsis, // Corta con "..." si es muy largo
-                      maxLines: 1,
-                    ),
-                  ),
-                  // Botón para activar modo selección
-                  IconButton(
-                    onPressed: _toggleSelectionMode,
-                    icon: const Icon(Icons.checklist),
-                    tooltip: "Seleccionar productos",
-                  ),
-                  const SizedBox(width: 8),
-                  // Aquí irán filtros de ordenamiento en el futuro
-                  IconButton(onPressed: () {},
-                  icon: const Icon(Icons.sort)),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: FilledButton.icon(
-                      onPressed: () { showDialog(
-                        context: context,
-                        builder: (context) => const AddProductDialog(),
-                        );
-                      },
-                      icon: const Icon(Icons.add),
-                      label: const Text(
-                        "Nuevo Producto", 
-                        overflow: TextOverflow.ellipsis
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        AppStrings.productosSeleccionados(
+                          productVM.selectedProductIds.length,
+                        ), // Replaced hardcoded string
+                        style: theme.textTheme.titleMedium,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  )
-                ],
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: theme.colorScheme.error,
+                        foregroundColor: theme.colorScheme.onError,
+                      ),
+                      onPressed: productVM.selectedProductIds.isEmpty
+                          ? null
+                          : _deleteSelectedProducts,
+                      icon: const Icon(Icons.delete_outline),
+                      label: const Text(
+                        AppStrings.eliminar,
+                      ), // Replaced hardcoded string
+                    ),
+                  ]
+                : [
+                    // Usamos Expanded para que el texto ocupe el espacio disponible y empuje los botones
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: theme.textTheme.headlineSmall,
+                        overflow: TextOverflow
+                            .ellipsis, // Corta con "..." si es muy largo
+                        maxLines: 1,
+                      ),
+                    ),
+                    // Botón para activar modo selección
+                    IconButton(
+                      onPressed: () => productVM.toggleSelectionMode(),
+                      icon: const Icon(Icons.checklist),
+                      tooltip: AppStrings
+                          .seleccionarProductos, // Replaced hardcoded string
+                    ),
+                    const SizedBox(width: 8),
+                    // Aquí irán filtros de ordenamiento en el futuro
+                    IconButton(onPressed: () {}, icon: const Icon(Icons.sort)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => const AddProductDialog(),
+                          );
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text(
+                          AppStrings.nuevoProducto, // Replaced hardcoded string
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
           ),
         ),
 
@@ -200,71 +192,90 @@ class _DashboardGridState extends State<DashboardGrid> {
           child: productVM.isLoading
               ? const Center(child: CircularProgressIndicator())
               : productVM.products.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.inventory_2_outlined, size: 64, color: theme.colorScheme.outline),
-                          const SizedBox(height: 16),
-                          Text(
-                            "No hay productos en esta categoría",
-                            style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.outline),
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 64,
+                        color: theme.colorScheme.outline,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        AppStrings
+                            .noProductosEnCategoria, // Replaced hardcoded string
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : GridView.builder(
+                  padding: const EdgeInsets.all(24),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 250, // Ancho máximo de la tarjeta
+                    childAspectRatio: 0.75, // Relación de aspecto (Alto/Ancho)
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: productVM.products.length,
+                  itemBuilder: (context, index) {
+                    final product = productVM.products[index];
+                    final isSelected = productVM.selectedProductIds.contains(
+                      product.id,
+                    );
+
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ProductCard(
+                          product: product,
+                          onTap: productVM.isSelectionMode
+                              ? () => productVM.toggleProductSelection(
+                                  product.id!,
+                                )
+                              : () {
+                                  context
+                                      .read<ProductViewModel>()
+                                      .selectProduct(product);
+                                },
+                        ),
+                        if (productVM.isSelectionMode) ...[
+                          IgnorePointer(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? theme.colorScheme.primary.withValues(
+                                        alpha: 0.1,
+                                      )
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: isSelected
+                                    ? Border.all(
+                                        color: theme.colorScheme.primary,
+                                        width: 3,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: Checkbox(
+                              value: isSelected,
+                              onChanged: (v) =>
+                                  productVM.toggleProductSelection(product.id!),
+                            ),
                           ),
                         ],
-                      ),
-                    )
-                  : GridView.builder(
-                      padding: const EdgeInsets.all(24),
-                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 250, // Ancho máximo de la tarjeta
-                        childAspectRatio: 0.75,  // Relación de aspecto (Alto/Ancho)
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: productVM.products.length,
-                      itemBuilder: (context, index) {
-                        final product = productVM.products[index];
-                        final isSelected = _selectedProductIds.contains(product.id);
-                        
-                        return Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            ProductCard(
-                              product: product,
-                              onTap: _isSelectionMode 
-                                  ? () => _toggleProductSelection(product.id!)
-                                  : () {
-                                      context.read<ProductViewModel>().selectProduct(product);
-                                    },
-                            ),
-                            if (_isSelectionMode) ...[
-                              IgnorePointer(
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  decoration: BoxDecoration(
-                                    color: isSelected 
-                                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: isSelected 
-                                        ? Border.all(color: theme.colorScheme.primary, width: 3)
-                                        : null,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: Checkbox(
-                                  value: isSelected,
-                                  onChanged: (v) => _toggleProductSelection(product.id!),
-                                ),
-                              ),
-                            ]
-                          ],
-                        );
-                      },
-                    ),
+                      ],
+                    );
+                  },
+                ),
         ),
       ],
     );

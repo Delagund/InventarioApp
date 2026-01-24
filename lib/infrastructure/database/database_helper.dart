@@ -3,6 +3,10 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/foundation.dart';
+import 'schemas/product_table_schema.dart';
+import 'schemas/category_table_schema.dart';
+import 'schemas/product_category_table_schema.dart';
+import 'schemas/stock_history_table_schema.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -34,54 +38,19 @@ class DatabaseHelper {
   }
 
   Future _onCreate(Database db, int version) async {
-    // 1. Tabla de Productos
-    await db.execute('''
-      CREATE TABLE products (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sku TEXT UNIQUE NOT NULL,
-        name TEXT NOT NULL,
-        barcode TEXT,
-        quantity INTEGER DEFAULT 0 CHECK(quantity >= 0),
-        description TEXT,
-        image_path TEXT,
-        created_at TEXT
-      )
-    ''');
+    // Lista de esquemas a crear
+    final schemas = [
+      ProductTableSchema(),
+      CategoryTableSchema(),
+      ProductCategoryTableSchema(),
+      StockHistoryTableSchema(),
+    ];
 
-    // 2. Tabla de Categorías (Espacios Lógicos)
-    await db.execute('''
-      CREATE TABLE categories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL,
-        description TEXT
-      )
-    ''');
+    for (final schema in schemas) {
+      await schema.create(db);
+    }
 
-    // 3. Tabla Pivot (Muchos a Muchos)
-    await db.execute('''
-      CREATE TABLE product_categories (
-        product_id INTEGER,
-        category_id INTEGER,
-        FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
-        FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE,
-        PRIMARY KEY (product_id, category_id)
-      )
-    ''');
-
-    // 4. Tabla de Historial de Stock
-    await db.execute('''
-      CREATE TABLE stock_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        product_id INTEGER NOT NULL,
-        quantity_delta INTEGER NOT NULL,
-        reason TEXT,
-        user_name TEXT,
-        date TEXT,
-        FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
-      )
-    ''');
-    
-    debugPrint("Base de datos creada en $db"); // Log para confirmar la creación
+    debugPrint("Tablas creadas exitosamente usando SRP con TableSchema.");
   }
 
   @visibleForTesting

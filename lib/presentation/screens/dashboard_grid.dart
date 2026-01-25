@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../domain/models/product_sort.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/category_viewmodel.dart';
 import '../viewmodels/product_viewmodel.dart';
@@ -15,7 +16,7 @@ class DashboardGrid extends StatefulWidget {
 }
 
 class _DashboardGridState extends State<DashboardGrid> {
-  // Estado local para el modo de selección (AHORA EN VIEWMODEL)
+  late CategoryViewModel _categoryVM;
 
   Future<void> _deleteSelectedProducts() async {
     final productVM = context.read<ProductViewModel>();
@@ -68,8 +69,8 @@ class _DashboardGridState extends State<DashboardGrid> {
   void initState() {
     super.initState();
     // Suscribirse a cambios en la categoría
-    final categoryVM = context.read<CategoryViewModel>();
-    categoryVM.addListener(_onCategoryChanged);
+    _categoryVM = context.read<CategoryViewModel>();
+    _categoryVM.addListener(_onCategoryChanged);
 
     // Carga inicial (post frame para evitar errores de construcción)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -79,7 +80,7 @@ class _DashboardGridState extends State<DashboardGrid> {
 
   @override
   void dispose() {
-    context.read<CategoryViewModel>().removeListener(_onCategoryChanged);
+    _categoryVM.removeListener(_onCategoryChanged);
     super.dispose();
   }
 
@@ -162,34 +163,30 @@ class _DashboardGridState extends State<DashboardGrid> {
                     ),
                     const SizedBox(width: 8),
 
-                    // 2. Ordenamiento (Compacto)
-                    PopupMenuButton<int>(
+                    // 2. Ordenamiento (Ordenación dinámica)
+                    PopupMenuButton<ProductSort>(
                       tooltip: AppStrings.ordenarPor,
                       icon: const Icon(Icons.sort),
-                      onSelected: (value) {
-                        switch (value) {
-                          case 0:
-                            productVM.updateSort();
-                            break;
-                          case 1:
-                            productVM.updateSort(stockAsc: true);
-                            break;
-                          case 2:
-                            productVM.updateSort(dateDesc: true);
-                            break;
-                        }
-                      },
+                      onSelected: (value) => productVM.updateSort(value),
                       itemBuilder: (context) => [
                         const PopupMenuItem(
-                          value: 0,
+                          value: ProductSort.nameAsc,
                           child: Text(AppStrings.nombreAZ),
                         ),
                         const PopupMenuItem(
-                          value: 1,
+                          value: ProductSort.nameDesc,
+                          child: Text("Nombre (Z-A)"),
+                        ),
+                        const PopupMenuItem(
+                          value: ProductSort.stockAsc,
                           child: Text(AppStrings.stockMinimo),
                         ),
                         const PopupMenuItem(
-                          value: 2,
+                          value: ProductSort.stockDesc,
+                          child: Text("Stock (Mayor a Menor)"),
+                        ),
+                        const PopupMenuItem(
+                          value: ProductSort.dateDesc,
                           child: Text(AppStrings.fechaReciente),
                         ),
                       ],

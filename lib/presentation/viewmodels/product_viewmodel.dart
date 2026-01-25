@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../domain/models/product_sort.dart';
 import '../../domain/models/product.dart' as domain;
 import '../../domain/models/category.dart' as domain;
 import '../../domain/models/product_filter.dart' as domain;
@@ -82,13 +83,9 @@ class ProductViewModel extends ChangeNotifier {
     await loadProducts(filter: _currentFilter);
   }
 
-  Future<void> updateSort({bool? stockAsc, bool? dateDesc}) async {
-    _currentFilter = _currentFilter.copyWith(
-      orderByStockAsc: stockAsc ?? false,
-      orderByDateDesc: dateDesc ?? false,
-    );
+  Future<void> updateSort(ProductSort sortBy) async {
+    _currentFilter = _currentFilter.copyWith(sortBy: sortBy);
     await loadProducts(filter: _currentFilter);
-    await loadProducts();
   }
 
   Future<void> loadProducts({domain.ProductFilter? filter}) async {

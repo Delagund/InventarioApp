@@ -16,6 +16,7 @@ import 'package:inventory_app/presentation/viewmodels/category_viewmodel.dart'
     as _i10;
 import 'package:inventory_app/presentation/viewmodels/product_viewmodel.dart'
     as _i3;
+import 'package:inventory_app/domain/models/product_sort.dart' as _i11;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -154,12 +155,9 @@ class MockProductViewModel extends _i1.Mock implements _i3.ProductViewModel {
           as _i6.Future<void>);
 
   @override
-  _i6.Future<void> updateSort({bool? stockAsc, bool? dateDesc}) =>
+  _i6.Future<void> updateSort(_i11.ProductSort? sortBy) =>
       (super.noSuchMethod(
-            Invocation.method(#updateSort, [], {
-              #stockAsc: stockAsc,
-              #dateDesc: dateDesc,
-            }),
+            Invocation.method(#updateSort, [sortBy]),
             returnValue: _i6.Future<void>.value(),
             returnValueForMissingStub: _i6.Future<void>.value(),
           )

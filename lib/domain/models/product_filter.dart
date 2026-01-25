@@ -1,34 +1,30 @@
+import 'product_sort.dart';
+
 class ProductFilter {
   final int? categoryId;
   final String? searchQuery;
-  final bool orderByStockAsc; // Para el Sprint 3
-  final bool orderByDateDesc; // Para el Sprint 3
+  final ProductSort sortBy;
 
   ProductFilter({
     this.categoryId,
     this.searchQuery,
-    this.orderByStockAsc = false,
-    this.orderByDateDesc = false,
+    this.sortBy = ProductSort.nameAsc,
   });
 
   ProductFilter copyWith({
     int? Function()? categoryId,
     String? Function()? searchQuery,
-    bool? orderByStockAsc,
-    bool? orderByDateDesc,
+    ProductSort? sortBy,
   }) {
     return ProductFilter(
       categoryId: categoryId != null ? categoryId() : this.categoryId,
       searchQuery: searchQuery != null ? searchQuery() : this.searchQuery,
-      orderByStockAsc: orderByStockAsc ?? this.orderByStockAsc,
-      orderByDateDesc: orderByDateDesc ?? this.orderByDateDesc,
+      sortBy: sortBy ?? this.sortBy,
     );
   }
 
-  // Método helper para saber si el filtro está vacío
   bool get isEmpty =>
       categoryId == null &&
       (searchQuery == null || searchQuery!.isEmpty) &&
-      !orderByStockAsc &&
-      !orderByDateDesc;
+      sortBy == ProductSort.nameAsc;
 }

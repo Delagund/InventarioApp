@@ -35,7 +35,7 @@ class AppStrings {
       'No hay productos en esta categoría';
 
   // Products
-  static const String nuevoProducto = '+ Producto';
+  static const String nuevoProducto = 'Producto';
   static const String guardarProducto = 'Guardar Producto';
   static const String nombreProducto = 'Nombre del Producto';
   static const String sku = 'SKU';

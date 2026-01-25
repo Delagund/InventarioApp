@@ -53,9 +53,11 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => di.getIt<CategoryViewModel>()),
       ],
       child: MaterialApp(
-        title: 'Inventory_App',
+        title: 'Inventario Pro',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
         home: const MainLayout(),
       ),
     );

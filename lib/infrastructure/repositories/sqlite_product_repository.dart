@@ -9,6 +9,7 @@ import '../database/database_helper.dart';
 import '../database/schema_constants.dart';
 import '../../core/exceptions/app_exceptions.dart';
 import 'package:sqflite/sqflite.dart';
+import '../../domain/models/product_sort.dart';
 
 class SQLiteProductRepository implements IProductRepository {
   // Obtenemos la instancia del DatabaseHelper que creamos antes
@@ -47,12 +48,26 @@ class SQLiteProductRepository implements IProductRepository {
         : null;
 
     // 2. Definir Ordenamiento (ORDER BY)
-    String orderBy = 'name ASC'; // Default: Alfabético
-
-    if (filter.orderByStockAsc) {
-      orderBy = 'quantity ASC';
-    } else if (filter.orderByDateDesc) {
-      orderBy = 'created_at DESC';
+    String orderBy;
+    switch (filter.sortBy) {
+      case ProductSort.nameAsc:
+        orderBy = '${SchemaConstants.columnProductName} COLLATE NOCASE ASC';
+        break;
+      case ProductSort.nameDesc:
+        orderBy = '${SchemaConstants.columnProductName} COLLATE NOCASE DESC';
+        break;
+      case ProductSort.stockAsc:
+        orderBy = '${SchemaConstants.columnProductQuantity} ASC';
+        break;
+      case ProductSort.stockDesc:
+        orderBy = '${SchemaConstants.columnProductQuantity} DESC';
+        break;
+      case ProductSort.dateDesc:
+        orderBy = '${SchemaConstants.columnProductCreatedAt} DESC';
+        break;
+      case ProductSort.dateAsc:
+        orderBy = '${SchemaConstants.columnProductCreatedAt} ASC';
+        break;
     }
 
     // 3. Ejecutar la Query Principal

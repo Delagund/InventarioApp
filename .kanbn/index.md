@@ -15,7 +15,6 @@ completedColumns:
 
 ## Done
 
-- [domain-definir-entidad-product](tasks/domain-definir-entidad-product.md)
 - [presentation-setup-de-ventana-mac-os](tasks/presentation-setup-de-ventana-mac-os.md)
 - [presentation-configurar-inyección-de-dependencias](tasks/presentation-configurar-inyección-de-dependencias.md)
 - [testing-test-de-persistencia](tasks/testing-test-de-persistencia.md)

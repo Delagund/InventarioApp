@@ -140,11 +140,61 @@ classDiagram
     InventoryInteractor --> Product : "Manipula"
 ```
 
-📂 Estructura del Proyecto
-/Domain: Entidades puras y protocolos de repositorio.
+# Especificación de Proyecto: Inventory Master (v1.0)
 
-/Application: Casos de uso (Interactors).
+## 1. Visión General
+* **Objetivo:** Aplicación profesional de gestión de inventario para macOS con base de datos única y separación lógica por categorías.
+* **Plataforma:** macOS Desktop (optimizada para Intel Mac 2019).
+* **Metodología:** Scrumban (Sprints semanales + Kanban).
+* **Estado Actual:** Versión 1.0 alcanzada.
 
-/Infrastructure: Implementación de SQLite y servicios de sistema.
+## 2. Stack Tecnológico
+* **Framework:** Flutter (Desktop macOS).
+* **Lenguaje:** Dart 3.x.
+* **Arquitectura:** Clean Architecture (Domain, Application, Infrastructure, Presentation).
+* **Persistencia:** SQLite (`sqflite_common_ffi`).
+* **Gestión de Estado:** Provider (con ViewModels).
+* **Control de Versiones:** Git + GitHub.
+* **Servicios:** `file_selector` (imágenes nativas), `window_manager`.
 
-/Presentation: Vistas SwiftUI y ViewModels.
+## 3. Arquitectura de Datos (Backend Local)
+**Esquema Relacional:**
+* **Products:** `id` (PK), `sku` (UK), `name`, `barcode`, `quantity`, `description`, `image_path`, `created_at`.
+* **Categories:** `id` (PK), `name` (UK), `description`, `product_count` (calculado).
+* **Product_Categories:** Tabla pivote (Many-to-Many).
+* **Stock_History:** Auditoría de movimientos (`change_amount`, `reason`, `date`, `user`).
+
+## 4. Funcionalidades Implementadas (v1.0)
+
+### A. Infraestructura y Lógica
+* **Base de Datos:** Implementación SRP con clases `TableSchema` individuales.
+* **Repositorios:** Manejo de excepciones con `AppException` y `try-catch` robusto.
+* **ViewModels:**
+    * `ProductViewModel`: Gestión reactiva de selección, filtrado, búsqueda y ordenamiento.
+    * `CategoryViewModel`: CRUD completo de categorías.
+
+### B. Interfaz de Usuario (Layout de 3 Columnas)
+1.  **Sidebar (Navegación):**
+    * Lista de categorías con contadores (badges).
+    * Acceso a "Gestionar Categorías".
+    * Diseño responsivo (truncado de texto, ancho dinámico 250px-320px).
+2.  **Dashboard (Grid):**
+    * Buscador Global (SearchBar) por nombre/SKU.
+    * Ordenamiento (A-Z, Stock, Fecha).
+    * Grid de tarjetas adaptativas.
+3.  **Inspector (Detalle):**
+    * Arquitectura modular: `ProductHeader`, `StockControl`, `CategoryEditor`, `MovementHistoryList`.
+    * Edición de imagen, nombre y categorías.
+    * Historial de movimientos auto-refrescable.
+
+## 5. Refactoring y Calidad 
+* **Componentes Reutilizables:** `CustomTextField`, `EditNameDialog`, `StockStepper`, `AppLayout`.
+* **Centralización:**
+    * **Textos:** `AppStrings.dart` (eliminación de hardcoded strings).
+    * **Estilos:** `AppTheme` y `AppThemeExtension` (colores semánticos para stock).
+    * **DB:** `SchemaConstants` para evitar "magic strings" en SQL.
+* **Testing:** 16 tests automatizados (Unitarios y de Integración) con 100% de éxito. Cubren selección múltiple y repositorios.
+* **Estabilidad:** Control de redimensionado mínimo (1000x700px) para evitar colapsos de UI.
+
+## 6. Pendientes / Roadmap Futuro
+* In Progress...

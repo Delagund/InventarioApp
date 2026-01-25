@@ -32,7 +32,6 @@ class CategoryViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Aquí se invoca al repositorio que ya calcula el productCount mediante JOIN
       _categories = await _repository.getAllCategories();
     } on AppException catch (e) {
       _errorMessage = e.toString();
@@ -46,7 +45,6 @@ class CategoryViewModel extends ChangeNotifier {
     }
   }
 
-  // Selección de categoría para filtrado en el Dashboard
   void selectCategory(Category? category) {
     _selectedCategory = category;
     notifyListeners();
@@ -66,6 +64,34 @@ class CategoryViewModel extends ChangeNotifier {
       LoggingService.error(_errorMessage!);
     } catch (e) {
       _errorMessage = "${AppStrings.errorCargarCategorias}: $e";
+      LoggingService.error(_errorMessage!);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateCategory(int id, String newName) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final category = _categories.firstWhere((c) => c.id == id);
+      final updatedCategory = category.copyWith(name: newName);
+      await _repository.updateCategory(updatedCategory);
+
+      // Si la categoría editada era la seleccionada, actualizamos la referencia
+      if (_selectedCategory?.id == id) {
+        _selectedCategory = updatedCategory;
+      }
+
+      await loadCategories();
+    } on AppException catch (e) {
+      _errorMessage = e.toString();
+      LoggingService.error(_errorMessage!);
+    } catch (e) {
+      _errorMessage = "Error al actualizar categoría: $e";
       LoggingService.error(_errorMessage!);
     } finally {
       _isLoading = false;

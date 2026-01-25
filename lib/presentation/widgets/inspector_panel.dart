@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../domain/models/product.dart';
 import '../../domain/models/stock_adjustment_reason.dart';
 import '../../presentation/viewmodels/product_viewmodel.dart';
+import '../../presentation/viewmodels/category_viewmodel.dart';
 import '../../infrastructure/services/image_picker_service.dart';
 import 'dialogs/edit_name_dialog.dart';
 import 'inputs/stock_stepper.dart';
@@ -19,6 +20,8 @@ class _InspectorPanelState extends State<InspectorPanel> {
   late TextEditingController _qtyController;
   int _localStock = 0;
   int? _lastProductId; // Para detectar cambio de selección
+  final Set<int> _selectedCategoryIds = {};
+  bool _isEditingCategories = false;
 
   @override
   void initState() {
@@ -32,12 +35,33 @@ class _InspectorPanelState extends State<InspectorPanel> {
     super.dispose();
   }
 
-  // Sincroniza el estado local si cambiamos de producto
+  // Sincroniza el estado local si cambiamos de producto o si los datos del actual cambiaron
   void _syncProduct(Product product) {
-    if (_lastProductId != product.id) {
+    // Detectamos si es un producto distinto O si el mismo producto tiene datos nuevos (ej. tras guardar stock)
+    final isNewProduct = _lastProductId != product.id;
+    final hasDataChanges = _localStock != product.quantity;
+
+    // Verificamos si las categorías han cambiado (por longitud o por IDs)
+    final productCategoryIds =
+        product.categories?.map((c) => c.id!).toSet() ?? {};
+    final categoriesChanged =
+        productCategoryIds.length != _selectedCategoryIds.length ||
+        !productCategoryIds.every(_selectedCategoryIds.contains);
+
+    if (isNewProduct || hasDataChanges || categoriesChanged) {
       _lastProductId = product.id;
       _localStock = product.quantity;
       _qtyController.text = _localStock.toString();
+
+      // Solo refrescamos categorías si cambiamos de producto o estamos forzando la sincronización
+      if (isNewProduct || !_isEditingCategories || categoriesChanged) {
+        _selectedCategoryIds.clear();
+        _selectedCategoryIds.addAll(productCategoryIds);
+      }
+
+      if (isNewProduct) {
+        _isEditingCategories = false;
+      }
     }
   }
 
@@ -105,7 +129,30 @@ class _InspectorPanelState extends State<InspectorPanel> {
     );
   }
 
-  // 4. Eliminar Producto
+  // 4. Guardar Categorías
+  Future<void> _saveCategories(BuildContext context) async {
+    final categoryVM = context.read<CategoryViewModel>();
+    final productVM = context.read<ProductViewModel>();
+
+    final selectedCategories = categoryVM.categories
+        .where((c) => _selectedCategoryIds.contains(c.id))
+        .toList();
+
+    final success = await productVM.updateProductDetails(
+      categories: selectedCategories,
+    );
+
+    if (success && context.mounted) {
+      setState(() => _isEditingCategories = false);
+      // Forzamos recarga de categorías para actualizar contadores en el Sidebar
+      context.read<CategoryViewModel>().loadCategories();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Categorías actualizadas")));
+    }
+  }
+
+  // 5. Eliminar Producto
   void _showDeleteConfirm(BuildContext context, Product product) {
     showDialog(
       context: context,
@@ -129,6 +176,8 @@ class _InspectorPanelState extends State<InspectorPanel> {
               // Al eliminar, limpiamos la selección
               if (context.mounted) {
                 context.read<ProductViewModel>().selectProduct(null);
+                // Refrescamos contadores
+                context.read<CategoryViewModel>().loadCategories();
               }
             },
             child: const Text("Eliminar"),
@@ -141,6 +190,7 @@ class _InspectorPanelState extends State<InspectorPanel> {
   @override
   Widget build(BuildContext context) {
     final productVM = context.watch<ProductViewModel>();
+    final categoryVM = context.watch<CategoryViewModel>();
     final product = productVM.selectedProduct;
     final theme = Theme.of(context);
 
@@ -261,11 +311,71 @@ class _InspectorPanelState extends State<InspectorPanel> {
 
                 // ------------------------
                 const SizedBox(height: 24),
-                // Chips de categorías (Visualización)
-                if (product.categories != null &&
-                    product.categories!.isNotEmpty) ...[
-                  Text("Categorías", style: theme.textTheme.labelLarge),
-                  const SizedBox(height: 8),
+                const SizedBox(height: 24),
+
+                // --- SECCIÓN DE CATEGORÍAS ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Categorías", style: theme.textTheme.labelMedium),
+                    if (!_isEditingCategories)
+                      TextButton.icon(
+                        onPressed: () =>
+                            setState(() => _isEditingCategories = true),
+                        icon: const Icon(Icons.edit_note, size: 18),
+                        label: const Text("Editar"),
+                      )
+                    else
+                      Row(
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              _syncProduct(product); // Revierte cambios locales
+                              setState(() => _isEditingCategories = false);
+                            },
+                            child: const Text("Cancelar"),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: () => _saveCategories(context),
+                            child: const Text("Guardar"),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                if (_isEditingCategories)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant,
+                      ),
+                    ),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: categoryVM.categories.map((cat) {
+                        return FilterChip(
+                          label: Text(cat.name),
+                          selected: _selectedCategoryIds.contains(cat.id),
+                          onSelected: (selected) {
+                            setState(() {
+                              selected
+                                  ? _selectedCategoryIds.add(cat.id!)
+                                  : _selectedCategoryIds.remove(cat.id);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  )
+                else if (product.categories != null &&
+                    product.categories!.isNotEmpty)
                   Wrap(
                     spacing: 8,
                     children: product.categories!
@@ -276,9 +386,17 @@ class _InspectorPanelState extends State<InspectorPanel> {
                           ),
                         )
                         .toList(),
+                  )
+                else
+                  Text(
+                    "Sin categorías asociadas",
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: theme.colorScheme.outline,
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                ],
+
+                const SizedBox(height: 24),
 
                 const Divider(),
 

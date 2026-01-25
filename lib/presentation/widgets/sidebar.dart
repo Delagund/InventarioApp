@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/category_viewmodel.dart';
 import '../../domain/models/category.dart';
 import '../../core/constants/app_strings.dart';
-import 'inputs/custom_text_field.dart';
+import 'dialogs/manage_categories_dialog.dart';
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key});
@@ -14,117 +14,97 @@ class Sidebar extends StatelessWidget {
     final categoryVM = context.watch<CategoryViewModel>();
     final theme = Theme.of(context);
 
-    return Container(
-      width: 250, // Ancho fijo típico de sidebar
-      color: theme.colorScheme.surfaceContainerLow, // Color de fondo sutil
-      child: Column(
-        children: [
-          // Título de la sección
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.inventory_2_outlined,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  AppStrings.inventario,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // El ancho se adapta pero con un mínimo para legibilidad
+        final width = constraints.maxWidth.clamp(250.0, 320.0);
 
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              children: [
-                // Opción "Todos los productos" (Categoría null)
-                _SidebarItem(
-                  icon: Icons.dashboard,
-                  title: AppStrings.todosLosProductos,
-                  isSelected: categoryVM.selectedCategory == null,
-                  onTap: () => categoryVM.selectCategory(null),
-                  // Opcional: Podrías sumar todos los productCounts aquí si quisieras
-                ),
-
-                const Divider(height: 20),
-
-                Text(
-                  AppStrings.categorias,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Lista dinámica desde la BD
-                if (categoryVM.isLoading)
-                  const Center(child: CircularProgressIndicator())
-                else
-                  ...categoryVM.categories.map(
-                    (category) => _SidebarItem(
-                      category: category,
-                      icon: Icons.folder_open,
-                      title: category.name,
-                      // Aquí usamos el productCount calculado por SQLite
-                      count: category.productCount,
-                      isSelected:
-                          categoryVM.selectedCategory?.id == category.id,
-                      onTap: () => categoryVM.selectCategory(category),
+        return Container(
+          width: width,
+          color: theme.colorScheme.surfaceContainerLow,
+          child: Column(
+            children: [
+              // Título de la sección
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      color: theme.colorScheme.primary,
                     ),
-                  ),
-              ],
-            ),
-          ),
+                    const SizedBox(width: 8),
+                    Text(
+                      AppStrings.inventario,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-          // Botón Agregar Categoría
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: FilledButton.tonalIcon(
-              onPressed: () {
-                _showAddCategoryDialog(context, categoryVM);
-              },
-              icon: const Icon(Icons.add),
-              label: const Text(AppStrings.nuevaCategoria),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  children: [
+                    // Opción "Todos los productos" (Categoría null)
+                    _SidebarItem(
+                      icon: Icons.dashboard,
+                      title: AppStrings.todosLosProductos,
+                      isSelected: categoryVM.selectedCategory == null,
+                      onTap: () => categoryVM.selectCategory(null),
+                      // Opcional: Podrías sumar todos los productCounts aquí si quisieras
+                    ),
 
-  void _showAddCategoryDialog(BuildContext context, CategoryViewModel vm) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text(AppStrings.nuevaCategoria),
-        content: CustomTextField(
-          controller: controller,
-          label: AppStrings.nombreCategoria,
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(AppStrings.cancelar),
+                    const Divider(height: 20),
+
+                    Text(
+                      AppStrings.categorias,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Lista dinámica desde la BD
+                    if (categoryVM.isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else
+                      ...categoryVM.categories.map(
+                        (category) => _SidebarItem(
+                          category: category,
+                          icon: Icons.folder_open,
+                          title: category.name,
+                          // Aquí usamos el productCount calculado por SQLite
+                          count: category.productCount,
+                          isSelected:
+                              categoryVM.selectedCategory?.id == category.id,
+                          onTap: () => categoryVM.selectCategory(category),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // Botón Gestionar Categorías
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: FilledButton.tonalIcon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => const ManageCategoriesDialog(),
+                    );
+                  },
+                  icon: const Icon(Icons.settings),
+                  label: const Text(AppStrings.gestionarCategorias),
+                ),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () {
-              if (controller.text.isNotEmpty) {
-                vm.addCategory(controller.text, null);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text(AppStrings.crear),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -169,6 +149,8 @@ class _SidebarItem extends StatelessWidget {
         ),
         title: Text(
           title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: isSelected
                 ? theme.colorScheme.onSecondaryContainer
@@ -199,15 +181,6 @@ class _SidebarItem extends StatelessWidget {
                         : theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ),
-            // Botón para eliminar la categoría (si existe el objeto)
-            if (category != null)
-              IconButton(
-                icon: const Icon(Icons.close, size: 16),
-                tooltip: AppStrings.eliminarCategoria,
-                onPressed: () => context
-                    .read<CategoryViewModel>()
-                    .deleteCategory(category!.id!),
               ),
           ],
         ),

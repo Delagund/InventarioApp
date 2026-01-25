@@ -7,11 +7,15 @@ class AppStrings {
 
   // Categories
   static const String nuevaCategoria = 'Nueva Categoría';
-  static const String nombreCategoria = 'Nombre';
+  static const String nombreCategoria = 'Nombre de la categoría';
   static const String crear = 'Crear';
   static const String cancelar = 'Cancelar';
-  static const String eliminarCategoria = 'Eliminar categoría';
-  static const String errorEliminarCategoria = 'Error al eliminar la categoría';
+  static const String eliminarCategoria = '¿Eliminar Categoría?';
+  static const String errorEliminarCategoria = 'Error al eliminar categoría';
+  static const String gestionarCategorias = 'Gestionar Categorías';
+  static const String editarCategoria = 'Editar Categoría';
+  static const String confirmarEliminarCategoria =
+      'Se eliminará la categoría de todos los productos asociados. ¿Continuar?';
   static const String eliminarProductos = 'Eliminar productos';
   static String confirmarEliminarProductos(int count) =>
       '¿Estás seguro de que deseas eliminar $count productos? Esta acción no se puede deshacer.';
@@ -20,11 +24,18 @@ class AppStrings {
   static const String cancelarSeleccion = 'Cancelar selección';
   static String productosSeleccionados(int count) => '$count seleccionados';
   static const String seleccionarProductos = 'Seleccionar productos';
+
+  // Ordenamiento
+  static const String ordenarPor = "Ordenar por";
+  static const String nombreAZ = "Nombre (A-Z)";
+  static const String stockMinimo = "Stock (Menor a Mayor)";
+  static const String fechaReciente = "Más Recientes";
+  static const String buscarProductos = "Buscar productos...";
   static const String noProductosEnCategoria =
       'No hay productos en esta categoría';
 
   // Products
-  static const String nuevoProducto = 'Nuevo Producto';
+  static const String nuevoProducto = '+ Producto';
   static const String guardarProducto = 'Guardar Producto';
   static const String nombreProducto = 'Nombre del Producto';
   static const String sku = 'SKU';

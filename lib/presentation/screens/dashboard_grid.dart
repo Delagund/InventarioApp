@@ -84,21 +84,25 @@ class _DashboardGridState extends State<DashboardGrid> {
   }
 
   // Cuando la categoría cambia en el Sidebar, recargamos los productos
-  void _onCategoryChanged() {
-    if (!mounted) return;
+  Future<void> _onCategoryChanged() {
+    if (!mounted) return Future.value();
     final selectedCategory = context.read<CategoryViewModel>().selectedCategory;
-    context.read<ProductViewModel>().filterByCategory(selectedCategory?.id);
+    return context.read<ProductViewModel>().filterByCategory(
+      selectedCategory?.id,
+    );
+  }
+
+  void _showAddDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const AddProductDialog(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final productVM = context.watch<ProductViewModel>();
-    final categoryVM = context.watch<CategoryViewModel>();
     final theme = Theme.of(context);
-
-    // Encabezado dinámico
-    final title =
-        categoryVM.selectedCategory?.name ?? AppStrings.todosLosProductos;
 
     return Column(
       children: [
@@ -115,15 +119,14 @@ class _DashboardGridState extends State<DashboardGrid> {
                     IconButton(
                       onPressed: () => productVM.toggleSelectionMode(),
                       icon: const Icon(Icons.close),
-                      tooltip: AppStrings
-                          .cancelarSeleccion, // Replaced hardcoded string
+                      tooltip: AppStrings.cancelarSeleccion,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         AppStrings.productosSeleccionados(
                           productVM.selectedProductIds.length,
-                        ), // Replaced hardcoded string
+                        ),
                         style: theme.textTheme.titleMedium,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -137,47 +140,87 @@ class _DashboardGridState extends State<DashboardGrid> {
                           ? null
                           : _deleteSelectedProducts,
                       icon: const Icon(Icons.delete_outline),
-                      label: const Text(
-                        AppStrings.eliminar,
-                      ), // Replaced hardcoded string
+                      label: const Text(AppStrings.eliminar),
                     ),
                   ]
                 : [
-                    // Usamos Expanded para que el texto ocupe el espacio disponible y empuje los botones
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: theme.textTheme.headlineSmall,
-                        overflow: TextOverflow
-                            .ellipsis, // Corta con "..." si es muy largo
-                        maxLines: 1,
+                    // 1. Buscador Global dinámico
+                    Flexible(
+                      flex: 4,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 600),
+                        child: SearchBar(
+                          hintText: AppStrings.buscarProductos,
+                          leading: const Icon(Icons.search),
+                          elevation: WidgetStateProperty.all(0),
+                          backgroundColor: WidgetStateProperty.all(
+                            theme.colorScheme.surfaceContainerLow,
+                          ),
+                          onChanged: (value) => productVM.updateSearch(value),
+                        ),
                       ),
                     ),
-                    // Botón para activar modo selección
+                    const SizedBox(width: 8),
+
+                    // 2. Ordenamiento (Compacto)
+                    PopupMenuButton<int>(
+                      tooltip: AppStrings.ordenarPor,
+                      icon: const Icon(Icons.sort),
+                      onSelected: (value) {
+                        switch (value) {
+                          case 0:
+                            productVM.updateSort();
+                            break;
+                          case 1:
+                            productVM.updateSort(stockAsc: true);
+                            break;
+                          case 2:
+                            productVM.updateSort(dateDesc: true);
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 0,
+                          child: Text(AppStrings.nombreAZ),
+                        ),
+                        const PopupMenuItem(
+                          value: 1,
+                          child: Text(AppStrings.stockMinimo),
+                        ),
+                        const PopupMenuItem(
+                          value: 2,
+                          child: Text(AppStrings.fechaReciente),
+                        ),
+                      ],
+                    ),
+
+                    // 3. Selección y Añadir
                     IconButton(
                       onPressed: () => productVM.toggleSelectionMode(),
                       icon: const Icon(Icons.checklist),
-                      tooltip: AppStrings
-                          .seleccionarProductos, // Replaced hardcoded string
+                      tooltip: AppStrings.seleccionarProductos,
                     ),
-                    const SizedBox(width: 8),
-                    // Aquí irán filtros de ordenamiento en el futuro
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.sort)),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: FilledButton.icon(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => const AddProductDialog(),
-                          );
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text(
-                          AppStrings.nuevoProducto, // Replaced hardcoded string
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
+                    const SizedBox(width: 4),
+
+                    // Botón con tamaño adaptativo
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final width = MediaQuery.of(context).size.width;
+                        final isCompact = width < 1000;
+
+                        return isCompact
+                            ? IconButton.filled(
+                                onPressed: () => _showAddDialog(context),
+                                icon: const Icon(Icons.add),
+                                tooltip: AppStrings.nuevoProducto,
+                              )
+                            : FilledButton.icon(
+                                onPressed: () => _showAddDialog(context),
+                                icon: const Icon(Icons.add),
+                                label: const Text(AppStrings.nuevoProducto),
+                              );
+                      },
                     ),
                   ],
           ),
@@ -213,67 +256,74 @@ class _DashboardGridState extends State<DashboardGrid> {
                     ],
                   ),
                 )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(24),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 250, // Ancho máximo de la tarjeta
-                    childAspectRatio: 0.75, // Relación de aspecto (Alto/Ancho)
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: productVM.products.length,
-                  itemBuilder: (context, index) {
-                    final product = productVM.products[index];
-                    final isSelected = productVM.selectedProductIds.contains(
-                      product.id,
-                    );
+              : LayoutBuilder(
+                  builder: (context, gridConstraints) {
+                    final crossAxisExtent = gridConstraints.maxWidth;
+                    // Evitar el error de crossAxisExtent > 0.0
+                    if (crossAxisExtent <= 10) return const SizedBox.shrink();
 
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ProductCard(
-                          product: product,
-                          onTap: productVM.isSelectionMode
-                              ? () => productVM.toggleProductSelection(
-                                  product.id!,
-                                )
-                              : () {
-                                  context
-                                      .read<ProductViewModel>()
-                                      .selectProduct(product);
-                                },
-                        ),
-                        if (productVM.isSelectionMode) ...[
-                          IgnorePointer(
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? theme.colorScheme.primary.withValues(
-                                        alpha: 0.1,
-                                      )
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                                border: isSelected
-                                    ? Border.all(
-                                        color: theme.colorScheme.primary,
-                                        width: 3,
-                                      )
-                                    : null,
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(24),
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 250,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: productVM.products.length,
+                      itemBuilder: (context, index) {
+                        final product = productVM.products[index];
+                        final isSelected = productVM.selectedProductIds
+                            .contains(product.id);
+
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ProductCard(
+                              product: product,
+                              onTap: productVM.isSelectionMode
+                                  ? () => productVM.toggleProductSelection(
+                                      product.id!,
+                                    )
+                                  : () {
+                                      context
+                                          .read<ProductViewModel>()
+                                          .selectProduct(product);
+                                    },
+                            ),
+                            if (productVM.isSelectionMode) ...[
+                              IgnorePointer(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? theme.colorScheme.primary.withValues(
+                                            alpha: 0.1,
+                                          )
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: isSelected
+                                        ? Border.all(
+                                            color: theme.colorScheme.primary,
+                                            width: 3,
+                                          )
+                                        : null,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Checkbox(
-                              value: isSelected,
-                              onChanged: (v) =>
-                                  productVM.toggleProductSelection(product.id!),
-                            ),
-                          ),
-                        ],
-                      ],
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: Checkbox(
+                                  value: isSelected,
+                                  onChanged: (v) => productVM
+                                      .toggleProductSelection(product.id!),
+                                ),
+                              ),
+                            ],
+                          ],
+                        );
+                      },
                     );
                   },
                 ),

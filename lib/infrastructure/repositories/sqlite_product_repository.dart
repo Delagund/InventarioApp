@@ -1,9 +1,10 @@
-import '../../domain/models/product.dart';
-import '../../domain/models/product_filter.dart';
-import '../../domain/models/stock_transaction.dart';
+import '../../domain/models/product.dart' as domain;
+import '../../domain/models/product_filter.dart' as domain;
+import '../../domain/models/stock_transaction.dart' as domain;
 import '../models/product_model.dart';
 import '../../domain/repositories/i_product_repository.dart';
-import '../../domain/models/stock_adjustment_reason.dart';
+import '../../domain/models/stock_adjustment_reason.dart' as domain;
+import '../../domain/models/category.dart' as domain;
 import '../database/database_helper.dart';
 import '../database/schema_constants.dart';
 import '../../core/exceptions/app_exceptions.dart';
@@ -14,7 +15,9 @@ class SQLiteProductRepository implements IProductRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   @override
-  Future<List<Product>> getProducts({required ProductFilter filter}) async {
+  Future<List<domain.Product>> getProducts({
+    required domain.ProductFilter filter,
+  }) async {
     final db = await _dbHelper.database;
 
     // 1. Construcción Dinámica del WHERE
@@ -61,9 +64,32 @@ class SQLiteProductRepository implements IProductRepository {
         orderBy: orderBy,
       );
 
-      // 4. Mapear a Objetos usando ProductModel
+      // 4. Obtener TODAS las categorías asociadas a estos productos para evitar N+1
+      final List<Map<String, dynamic>> categoryMaps = await db.rawQuery('''
+        SELECT pc.${SchemaConstants.columnPivotProductId}, c.*
+        FROM ${SchemaConstants.tableProductCategories} pc
+        JOIN ${SchemaConstants.tableCategories} c ON pc.${SchemaConstants.columnPivotCategoryId} = c.${SchemaConstants.columnCategoryId}
+      ''');
+
+      // Agrupamos categorías por ID de Producto
+      Map<int, List<domain.Category>> productCategoriesMap = {};
+      for (var row in categoryMaps) {
+        int pid = row[SchemaConstants.columnPivotProductId];
+        productCategoriesMap
+            .putIfAbsent(pid, () => [])
+            .add(
+              domain.Category(
+                id: row[SchemaConstants.columnCategoryId],
+                name: row[SchemaConstants.columnCategoryName],
+                description: row[SchemaConstants.columnCategoryDescription],
+              ),
+            );
+      }
+
+      // 5. Mapear a Objetos usando ProductModel e inyectar categorías
       return List.generate(maps.length, (i) {
-        return ProductModel.fromMap(maps[i]).toEntity();
+        final model = ProductModel.fromMap(maps[i]);
+        return model.toEntity(categories: productCategoriesMap[model.id] ?? []);
       });
     } catch (e) {
       throw AppDatabaseException("Error al consultar productos: $e");
@@ -71,7 +97,7 @@ class SQLiteProductRepository implements IProductRepository {
   }
 
   @override
-  Future<void> saveProduct(Product product) async {
+  Future<void> saveProduct(domain.Product product) async {
     final db = await _dbHelper.database;
     int productId;
 
@@ -124,7 +150,7 @@ class SQLiteProductRepository implements IProductRepository {
   }
 
   @override
-  Future<List<Product>> searchProducts(String query) async {
+  Future<List<domain.Product>> searchProducts(String query) async {
     final db = await _dbHelper.database;
     try {
       final List<Map<String, dynamic>> maps = await db.query(
@@ -178,7 +204,7 @@ class SQLiteProductRepository implements IProductRepository {
   Future<void> updateStock(
     int productId,
     int quantityDelta,
-    StockAdjustmentReason reason, {
+    domain.StockAdjustmentReason reason, {
     String? user = "Local_user",
   }) async {
     final db = await _dbHelper.database;
@@ -203,7 +229,7 @@ class SQLiteProductRepository implements IProductRepository {
   }
 
   @override
-  Future<List<StockTransaction>> getStockHistory(int productId) async {
+  Future<List<domain.StockTransaction>> getStockHistory(int productId) async {
     final db = await _dbHelper.database;
 
     try {
@@ -216,7 +242,7 @@ class SQLiteProductRepository implements IProductRepository {
       );
 
       return List.generate(maps.length, (i) {
-        return StockTransaction(
+        return domain.StockTransaction(
           id: maps[i][SchemaConstants.columnHistoryId],
           productId: maps[i][SchemaConstants.columnHistoryProductId],
           quantityDelta: maps[i][SchemaConstants.columnHistoryQuantityDelta],

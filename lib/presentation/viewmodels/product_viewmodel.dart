@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
-import '../../domain/models/product.dart';
-import '../../domain/models/product_filter.dart';
+import '../../domain/models/product.dart' as domain;
+import '../../domain/models/category.dart' as domain;
+import '../../domain/models/product_filter.dart' as domain;
 import '../../domain/repositories/i_product_repository.dart';
 import '../../domain/usecases/create_product_usecase.dart';
-import '../../domain/models/stock_transaction.dart';
+import '../../domain/models/stock_transaction.dart' as domain;
 import '../../domain/usecases/adjust_stock_usecase.dart';
-import '../../domain/models/stock_adjustment_reason.dart';
+import '../../domain/models/stock_adjustment_reason.dart' as domain;
 import '../../core/constants/app_strings.dart';
 import '../../core/exceptions/app_exceptions.dart';
 import '../../core/services/logging_service.dart';
@@ -23,22 +24,29 @@ class ProductViewModel extends ChangeNotifier {
        _repository = repository,
        _adjustStockUseCase = adjustStockUseCase;
 
-  List<Product> _products = [];
+  List<domain.Product> _products = [];
   bool _isLoading = false;
   String? _errorMessage;
-  Product? _selectedProduct;
+  domain.Product? _selectedProduct;
   final Set<int> _selectedProductIds = {};
   bool _isSelectionMode = false;
+  domain.ProductFilter _currentFilter = domain.ProductFilter();
 
-  List<Product> get products => _products;
+  List<domain.Product> get products => _products;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  Product? get selectedProduct => _selectedProduct;
+  domain.Product? get selectedProduct => _selectedProduct;
   Set<int> get selectedProductIds => _selectedProductIds;
   bool get isSelectionMode => _isSelectionMode;
+  domain.ProductFilter get currentFilter => _currentFilter;
 
-  void selectProduct(Product? product) {
+  void selectProduct(domain.Product? product) {
     _selectedProduct = product;
+    if (product != null) {
+      loadHistory();
+    } else {
+      _history = [];
+    }
     notifyListeners();
   }
 
@@ -63,17 +71,46 @@ class ProductViewModel extends ChangeNotifier {
   }
 
   Future<void> filterByCategory(int? categoryId) async {
-    await loadProducts(filter: ProductFilter(categoryId: categoryId));
+    _currentFilter = _currentFilter.copyWith(categoryId: () => categoryId);
+    await loadProducts(filter: _currentFilter);
   }
 
-  Future<void> loadProducts({ProductFilter? filter}) async {
+  Future<void> updateSearch(String query) async {
+    _currentFilter = _currentFilter.copyWith(
+      searchQuery: () => query.isEmpty ? null : query,
+    );
+    await loadProducts(filter: _currentFilter);
+  }
+
+  Future<void> updateSort({bool? stockAsc, bool? dateDesc}) async {
+    _currentFilter = _currentFilter.copyWith(
+      orderByStockAsc: stockAsc ?? false,
+      orderByDateDesc: dateDesc ?? false,
+    );
+    await loadProducts(filter: _currentFilter);
+    await loadProducts();
+  }
+
+  Future<void> loadProducts({domain.ProductFilter? filter}) async {
     _setLoading(true);
     _errorMessage = null;
 
+    final filterToUse = filter ?? _currentFilter;
+
     try {
-      _products = await _repository.getProducts(
-        filter: filter ?? ProductFilter(),
-      );
+      _products = await _repository.getProducts(filter: filterToUse);
+
+      // Sincronizar _selectedProduct si existe
+      if (_selectedProduct != null) {
+        try {
+          _selectedProduct = _products.firstWhere(
+            (p) => p.id == _selectedProduct!.id,
+          );
+        } catch (_) {
+          // El producto seleccionado ya no existe en el nuevo set filtrado
+          // Lo mantenemos o dejamos null según convenga. Lo mantenemos por ahora.
+        }
+      }
     } on AppException catch (e) {
       _errorMessage = e.toString();
       LoggingService.error(_errorMessage!);
@@ -85,7 +122,7 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> addProduct(Product product) async {
+  Future<bool> addProduct(domain.Product product) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -150,7 +187,7 @@ class ProductViewModel extends ChangeNotifier {
   Future<bool> updateProductStock(
     int productId,
     int delta,
-    StockAdjustmentReason reason,
+    domain.StockAdjustmentReason reason,
   ) async {
     _setLoading(true);
     try {
@@ -160,6 +197,7 @@ class ProductViewModel extends ChangeNotifier {
         reason: reason,
       );
       await loadProducts();
+      await loadHistory();
       return true;
     } on AppException catch (e) {
       _errorMessage = e.toString();
@@ -177,7 +215,7 @@ class ProductViewModel extends ChangeNotifier {
   // Alias for Inspector compatibility
   Future<bool> adjustStockFromInspector(
     int delta,
-    StockAdjustmentReason reason,
+    domain.StockAdjustmentReason reason,
   ) async {
     if (_selectedProduct == null) return false;
     return await updateProductStock(_selectedProduct!.id!, delta, reason);
@@ -189,10 +227,11 @@ class ProductViewModel extends ChangeNotifier {
     String? barcode,
     String? description,
     String? imagePath,
+    List<domain.Category>? categories,
   }) async {
     if (_selectedProduct == null) return false;
 
-    final updatedProduct = Product(
+    final updatedProduct = domain.Product(
       id: _selectedProduct!.id,
       name: name ?? _selectedProduct!.name,
       sku: sku ?? _selectedProduct!.sku,
@@ -200,7 +239,7 @@ class ProductViewModel extends ChangeNotifier {
       description: description ?? _selectedProduct!.description,
       quantity: _selectedProduct!.quantity,
       imagePath: imagePath ?? _selectedProduct!.imagePath,
-      categories: _selectedProduct!.categories,
+      categories: categories ?? _selectedProduct!.categories,
       createdAt: _selectedProduct!.createdAt,
     );
 
@@ -220,8 +259,8 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
-  List<StockTransaction> _history = [];
-  List<StockTransaction> get history => _history;
+  List<domain.StockTransaction> _history = [];
+  List<domain.StockTransaction> get history => _history;
 
   Future<void> loadHistory() async {
     if (_selectedProduct == null) return;

@@ -217,10 +217,12 @@ class _AddProductDialogState extends State<AddProductDialog> {
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return AppStrings.errorRequerido;
-                          if (int.tryParse(value) == null)
+                          }
+                          if (int.tryParse(value) == null) {
                             return AppStrings.errorNumero;
+                          }
                           return null;
                         },
                       ),
